@@ -1,4 +1,4 @@
-#CC=gcc
+CC=gcc-mp-4.6
 CFLAGS=-fno-common -fPIC -I/opt/local/include
 LDFLAGS=-L/opt/local/lib -lm -lgsl -lfftw3 -framework Accelerate
 LIB_NAME=libmcmc

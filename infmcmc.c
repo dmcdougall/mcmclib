@@ -27,6 +27,9 @@ void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk) {
   //C->sizeObsVector = sizeObsVector;
   C->currentIter = 0;
   C->accepted = 0;
+  C->_shortTimeAccProbAvg = 0.0;
+  C->_bLow = 0.0;
+  C->_bHigh = 1.0;
   
   // Allocate a ton of memory
   C->currentPhysicalState      = (double *)malloc(sphysical);
@@ -137,7 +140,8 @@ void infmcmc_printChain(INFCHAIN *C) {
   printf("-- Length is         %d x %d\n", C->nj, C->nk);
   printf("-- llhd val is       %lf\n", C->logLHDCurrentState);
   printf("-- Acc. prob is      %lf\n", C->accProb);
-  printf("-- Avg. acc. prob is %lf\n\n", C->avgAccProb);
+  printf("-- Avg. acc. prob is %lf\n", C->avgAccProb);
+  printf("-- Beta is           %lf\n\n", C->rwmhStepSize);
   //finmcmc_printCurrentState(C);
   //finmcmc_printAvgState(C);
   //finmcmc_printVarState(C);
@@ -278,6 +282,32 @@ void infmcmc_proposeRWMH(INFCHAIN *C) {
   fftw_execute_dft_c2r(C->_c2r, uk, C->proposedPhysicalState);
   fftw_free(uk);
   free(u);
+}
+
+void infmcmc_adaptRWMHStepSize(INFCHAIN *C) {
+  // Adapt to stay in 20-30% range.
+  int adaptFreq = 100;
+  double rate;
+  
+  if (C->currentIter > 0 && C->currentIter % adaptFreq == 0) {
+    rate = (double) C->_shortTimeAccProbAvg / adaptFreq;
+    
+    if (rate < 0.2) {
+      //C->_bHigh = C->rwmhStepSize;
+      //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
+      C->rwmhStepSize -= 0.001;
+    }
+    else if (rate > 0.3) {
+      //C->_bLow = C->rwmhStepSize;
+      //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
+      C->rwmhStepSize += 0.001;
+    }
+    
+    C->_shortTimeAccProbAvg = 0.0;
+  }
+  else {
+    C->_shortTimeAccProbAvg += C->accProb;
+  }
 }
 
 void infmcmc_proposeDivFreeRWMH(INFCHAIN *C1, INFCHAIN *C2) {
