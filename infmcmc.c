@@ -159,7 +159,7 @@ void randomPriorDraw(INFCHAIN *C) {
   
   for(j = 0; j < C->nj; j++) {
     for(k = 0; k < maxk; k++) {
-      xrand = gsl_ran_gaussian(C->r, 1.0);
+      xrand = gsl_ran_gaussian_ziggurat(C->r, 1.0);
       if((j == 0) && (k == 0)) {
         C->priorDraw[0] = 0.0;
       }
@@ -174,7 +174,7 @@ void randomPriorDraw(INFCHAIN *C) {
       }
       else {
         xrand /= sqrt(2.0);
-        yrand = gsl_ran_gaussian(C->r, 1.0) / sqrt(2.0);
+        yrand = gsl_ran_gaussian_ziggurat(C->r, 1.0) / sqrt(2.0);
         C->priorDraw[maxk*j+k] = /*C->nj */ (xrand + I * yrand) / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
         if(j > njo2) {
           C->priorDraw[maxk*j+k] = conj(C->priorDraw[maxk*(C->nj-j)+k]);
@@ -529,20 +529,20 @@ void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCo
         randDrawCoeffs[0] = 0.0;
       }
       else if((j == nj1/2) && (k == nk1/2)) {
-        xrand = gsl_ran_gaussian(r, 1.0);
+        xrand = gsl_ran_gaussian_ziggurat(r, 1.0);
         randDrawCoeffs[(nk1/2 + 1) * nj1/2 + nk1/2] = xrand / pow((c * ((j * j) + (k * k))), (double)PRIOR_ALPHA/2.0);
       }
       else if((j == 0) && (k == nk1/2)) {
-        xrand = gsl_ran_gaussian(r, 1.0);
+        xrand = gsl_ran_gaussian_ziggurat(r, 1.0);
         randDrawCoeffs[nk1/2] = xrand / pow((c * ((j * j) + (k * k))), (double)PRIOR_ALPHA/2.0);
       }
       else if((j == nj1/2) && (k == 0)) {
-        xrand = gsl_ran_gaussian(r, 1.0);
+        xrand = gsl_ran_gaussian_ziggurat(r, 1.0);
         randDrawCoeffs[(nk1/2 + 1) * nj1/2] = xrand / pow((c * ((j * j) + (k * k))), (double)PRIOR_ALPHA/2.0);
       }
       else {
-        xrand = gsl_ran_gaussian(r, 1.0) / sqrt(2.0);
-        yrand = gsl_ran_gaussian(r, 1.0) / sqrt(2.0);
+        xrand = gsl_ran_gaussian_ziggurat(r, 1.0) / sqrt(2.0);
+        yrand = gsl_ran_gaussian_ziggurat(r, 1.0) / sqrt(2.0);
         randDrawCoeffs[(nk1/2 + 1) * j + k] = (xrand + I * yrand) / pow((c * ((j * j) + (k * k))), (double)PRIOR_ALPHA/2.0);
         if(j > nj1/2) {
           randDrawCoeffs[(nk1/2 + 1) * j + k] = conj(randDrawCoeffs[(nk1/2+1)*(nj1-j)+k]);
@@ -554,8 +554,8 @@ void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCo
   /*
   for(j = 1; j < nj1 / 2; j++) {
     for(k = 0; k < nk1 / 2 + 1; k++) {
-      xrand = gsl_ran_gaussian(r, 1.0) / M_SQRT2;
-      yrand = gsl_ran_gaussian(r, 1.0) / M_SQRT2;
+      xrand = gsl_ran_gaussian_ziggurat(r, 1.0) / M_SQRT2;
+      yrand = gsl_ran_gaussian_ziggurat(r, 1.0) / M_SQRT2;
       scale = pow(c * ((j * j) + (k * k)), (double)PRIOR_ALPHA/2.0);
       randDrawCoeffs[(nk1/2 + 1) * j + k] = (xrand + I * yrand) / scale;
       randDrawCoeffs[(nk1/2 + 1) * (nj1-j) + k] = (xrand - I * yrand) / scale;
@@ -563,18 +563,18 @@ void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCo
   }
   
   for(k = 1; k < nk1 / 2 + 1; k++) {
-    xrand = gsl_ran_gaussian(r, 1.0) / M_SQRT2;
+    xrand = gsl_ran_gaussian_ziggurat(r, 1.0) / M_SQRT2;
     randDrawCoeffs[k] = (xrand + I * yrand) / pow(c * (k * k), (double)PRIOR_ALPHA/2.0);
   }
   
   for(k = 0; k < nk1/2; k++) {
-    xrand = gsl_ran_gaussian(r, 1.0) / M_SQRT2;
+    xrand = gsl_ran_gaussian_ziggurat(r, 1.0) / M_SQRT2;
     randDrawCoeffs[(nk1/2+1)*(nj1/2)+k] = (xrand + I * yrand) / pow(c * ((nj1 * nj1 / 4) + (k * k)), (double)PRIOR_ALPHA/2.0);
   }
   
   randDrawCoeffs[0] = 0.0;
   
-  xrand = gsl_ran_gaussian(r, 1.0);
+  xrand = gsl_ran_gaussian_ziggurat(r, 1.0);
   randDrawCoeffs[(nk1/2+1)*(nj1/2)+(nk1/2)] = xrand / pow(c * ((j * j) + (k * k)), (double)PRIOR_ALPHA/2.0);
   */
 }
