@@ -54,7 +54,7 @@ void infmcmc_writeVFChain(const INFCHAIN *U, const INFCHAIN *V, FILE *fp);
 void infmcmc_writeChain(const INFCHAIN *C, FILE *fp);
 void infmcmc_printChain(INFCHAIN *C);
 void infmcmc_setRWMHStepSize(INFCHAIN *C, double beta);
-void infmcmc_adaptRWMHStepSize(INFCHAIN *C);
+void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc);
 void infmcmc_setPriorAlpha(INFCHAIN *C, double alpha);
 double infmcmc_L2Current(INFCHAIN *C);
 double infmcmc_L2Proposed(INFCHAIN *C);

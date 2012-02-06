@@ -284,7 +284,7 @@ void infmcmc_proposeRWMH(INFCHAIN *C) {
   free(u);
 }
 
-void infmcmc_adaptRWMHStepSize(INFCHAIN *C) {
+void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc) {
   // Adapt to stay in 20-30% range.
   int adaptFreq = 100;
   double rate;
@@ -295,12 +295,12 @@ void infmcmc_adaptRWMHStepSize(INFCHAIN *C) {
     if (rate < 0.2) {
       //C->_bHigh = C->rwmhStepSize;
       //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
-      C->rwmhStepSize -= 0.001;
+      C->rwmhStepSize -= inc;
     }
     else if (rate > 0.3) {
       //C->_bLow = C->rwmhStepSize;
       //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
-      C->rwmhStepSize += 0.001;
+      C->rwmhStepSize += inc;
     }
     
     C->_shortTimeAccProbAvg = 0.0;
