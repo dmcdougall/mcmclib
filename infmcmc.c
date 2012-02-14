@@ -426,8 +426,8 @@ void infmcmc_updateVectorFieldRWMH(INFCHAIN *C1, INFCHAIN *C2, double logLHDOfPr
   double alpha;
   
   // log likelihoods will be the same for both chains
-  alpha = exp(C1->logLHDCurrentState - logLHDOfProposal);
-  
+	alpha = exp(C1->logLHDCurrentState - logLHDOfProposal);
+	
   if (alpha > 1.0) {
     alpha = 1.0;
   }
