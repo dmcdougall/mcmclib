@@ -64,6 +64,8 @@ void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk) {
    */
   C->alphaPrior = 3.0;
   C->rwmhStepSize = 1e-4;
+  C->priorVar = 1.0;
+  C->priorStd = 1.0;
   
   C->r = gsl_rng_alloc(gsl_rng_taus2);
   
@@ -159,7 +161,7 @@ void randomPriorDraw(INFCHAIN *C) {
   
   for(j = 0; j < C->nj; j++) {
     for(k = 0; k < maxk; k++) {
-      xrand = gsl_ran_gaussian_ziggurat(C->r, 1.0);
+      xrand = gsl_ran_gaussian_ziggurat(C->r, C->priorStd);
       if((j == 0) && (k == 0)) {
         C->priorDraw[0] = 0.0;
       }
@@ -174,7 +176,7 @@ void randomPriorDraw(INFCHAIN *C) {
       }
       else {
         xrand /= sqrt(2.0);
-        yrand = gsl_ran_gaussian_ziggurat(C->r, 1.0) / sqrt(2.0);
+        yrand = gsl_ran_gaussian_ziggurat(C->r, C->priorStd) / sqrt(2.0);
         C->priorDraw[maxk*j+k] = /*C->nj */ (xrand + I * yrand) / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
         if(j > njo2) {
           C->priorDraw[maxk*j+k] = conj(C->priorDraw[maxk*(C->nj-j)+k]);
@@ -458,6 +460,11 @@ void infmcmc_setRWMHStepSize(INFCHAIN *C, double beta) {
 
 void infmcmc_setPriorAlpha(INFCHAIN *C, double alpha) {
   C->alphaPrior = alpha;
+}
+
+void infmcmc_setPriorVar(INFCHAIN *C, double var) {
+  C->priorVar = var;
+  C->priorStd = sqrt(var);
 }
 
 double L2Field(fftw_complex *uk, int nj, int nk) {

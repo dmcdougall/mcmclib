@@ -22,7 +22,7 @@ struct _CHAIN {
   double *proposedPhysicalState;
   double logLHDCurrentState;
   double accProb, avgAccProb;
-  double rwmhStepSize, alphaPrior;
+  double rwmhStepSize, alphaPrior, priorVar, priorStd;
   
   // -- potentially not used --
   double *currentStateObservations, *proposedStateObservations;
@@ -56,6 +56,7 @@ void infmcmc_printChain(INFCHAIN *C);
 void infmcmc_setRWMHStepSize(INFCHAIN *C, double beta);
 void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc);
 void infmcmc_setPriorAlpha(INFCHAIN *C, double alpha);
+void infmcmc_setPriorVar(INFCHAIN *C, double var);
 double infmcmc_L2Current(INFCHAIN *C);
 double infmcmc_L2Proposed(INFCHAIN *C);
 double infmcmc_L2Prior(INFCHAIN *C);
