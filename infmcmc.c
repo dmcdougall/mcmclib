@@ -141,9 +141,9 @@ void infmcmc_printChain(INFCHAIN *C) {
   printf("Iteration %d\n", C->currentIter);
   printf("-- Length is         %d x %d\n", C->nj, C->nk);
   printf("-- llhd val is       %lf\n", C->logLHDCurrentState);
-  printf("-- Acc. prob is      %lf\n", C->accProb);
-  printf("-- Avg. acc. prob is %lf\n", C->avgAccProb);
-  printf("-- Beta is           %lf\n\n", C->rwmhStepSize);
+  printf("-- Acc. prob is      %.10lf\n", C->accProb);
+  printf("-- Avg. acc. prob is %.10lf\n", C->avgAccProb);
+  printf("-- Beta is           %.10lf\n\n", C->rwmhStepSize);
   //finmcmc_printCurrentState(C);
   //finmcmc_printAvgState(C);
   //finmcmc_printVarState(C);
