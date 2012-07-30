@@ -17,3 +17,8 @@ message(STATUS "headers: ${GSL_INCLUDE_DIR} ${GSLCBLAS_INCLUDE_DIR}")
 add_library(mcmc SHARED ${LIBSRC})
 target_link_libraries(mcmc ${LIBS})
 # link_libraries(${LIBS})
+
+install(TARGETS mcmc LIBRARY DESTINATION lib)
+install(FILES infmcmc.h finmcmc.h DESTINATION include)
+
+message(STATUS "install dir: ${CMAKE_INSTALL_PREFIX}")
