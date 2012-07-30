@@ -104,6 +104,11 @@ void infmcmc_freeChain(INFCHAIN *C) {
   gsl_rng_free(C->r);
 }
 
+void infmcmc_resetChain(INFCHAIN *C) {
+  infmcmc_freeChain(C);
+  infmcmc_initChain(C, C->nj, C->nk);
+}
+
 void infmcmc_writeChain(const INFCHAIN *C, FILE *fp) {
   const int s = C->nj * C->nk;
   

@@ -46,6 +46,7 @@ typedef struct _CHAIN INFCHAIN;
 
 void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk);
 void infmcmc_freeChain(INFCHAIN *C);
+void infmcmc_resetChain(INFCHAIN *C);
 void infmcmc_proposeRWMH(INFCHAIN *C);
 void infmcmc_updateRWMH(INFCHAIN *C, double logLHDOfProposal);
 void infmcmc_seedWithPriorDraw(INFCHAIN *C);
