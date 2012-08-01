@@ -3,6 +3,7 @@
 
 #include <complex.h>
 #include <fftw3.h>
+#include <gsl/gsl_rng.h>
 
 //void sampleRMWH(CHAIN *C);
 //void sampleIndependenceSampler(CHAIN *C);
