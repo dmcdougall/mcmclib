@@ -13,7 +13,7 @@
 #define nj1 32
 #define nk1 32
 
-void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk) {
+void infmcmc_initChain(mcmc_infchain *C, const int nj, const int nk) {
   const int maxk      = (nk >> 1) + 1;
   const int sspectral = sizeof(fftw_complex) * nj * maxk;
   const int sphysical = sizeof(double      ) * nj * nk;
@@ -86,7 +86,7 @@ void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk) {
   C->_r2c = fftw_plan_dft_r2c_2d(nj, nk, C->currentPhysicalState, C->currentSpectralState, FFTW_MEASURE);
 }
 
-void infmcmc_freeChain(INFCHAIN *C) {
+void infmcmc_freeChain(mcmc_infchain *C) {
   // Free all allocated memory used by the chain
   free(C->currentPhysicalState);
   free(C->avgPhysicalState);
@@ -104,12 +104,12 @@ void infmcmc_freeChain(INFCHAIN *C) {
   gsl_rng_free(C->r);
 }
 
-void infmcmc_resetChain(INFCHAIN *C) {
+void infmcmc_resetChain(mcmc_infchain *C) {
   infmcmc_freeChain(C);
   infmcmc_initChain(C, C->nj, C->nk);
 }
 
-void infmcmc_writeChain(const INFCHAIN *C, FILE *fp) {
+void infmcmc_writeChain(const mcmc_infchain *C, FILE *fp) {
   const int s = C->nj * C->nk;
   
   fwrite(&(C->nj),                 sizeof(int),    1,         fp);
@@ -123,12 +123,12 @@ void infmcmc_writeChain(const INFCHAIN *C, FILE *fp) {
   fwrite(&(C->avgAccProb),         sizeof(double), 1,         fp);
 }
 
-void infmcmc_writeChainInfo(const INFCHAIN *C, FILE *fp) {
+void infmcmc_writeChainInfo(const mcmc_infchain *C, FILE *fp) {
   fwrite(&(C->nj),             sizeof(int), 1, fp);
   fwrite(&(C->nk),             sizeof(int), 1, fp);
 }
 
-void infmcmc_writeVFChain(const INFCHAIN *U, const INFCHAIN *V, FILE *fp) {
+void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp) {
   const int s = U->nj * U->nk;
   
   fwrite(U->currentPhysicalState,  sizeof(double), s,         fp);
@@ -142,7 +142,7 @@ void infmcmc_writeVFChain(const INFCHAIN *U, const INFCHAIN *V, FILE *fp) {
   fwrite(&(U->avgAccProb),         sizeof(double), 1,         fp);
 }
 
-void infmcmc_printChain(INFCHAIN *C) {
+void infmcmc_printChain(mcmc_infchain *C) {
   printf("Iteration %d\n", C->currentIter);
   printf("-- Length is         %d x %d\n", C->nj, C->nk);
   printf("-- llhd val is       %lf\n", C->logLHDCurrentState);
@@ -154,7 +154,7 @@ void infmcmc_printChain(INFCHAIN *C) {
   //finmcmc_printVarState(C);
 }
 
-void randomPriorDraw(INFCHAIN *C) {
+void randomPriorDraw(mcmc_infchain *C) {
   int j, k;
   const int maxk = (C->nk >> 1) + 1;
   const int nko2 = C->nk >> 1;
@@ -191,7 +191,7 @@ void randomPriorDraw(INFCHAIN *C) {
   }
 }
 
-void randomDivFreePriorDraw(INFCHAIN *C1, INFCHAIN *C2) {
+void randomDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2) {
   int j, k;
   const int maxk = (C1->nk >> 1) + 1;
   const int njo2 = C2->nj >> 1;
@@ -229,7 +229,7 @@ void randomDivFreePriorDraw(INFCHAIN *C1, INFCHAIN *C2) {
   }
 }
 
-void infmcmc_seedWithPriorDraw(INFCHAIN *C) {
+void infmcmc_seedWithPriorDraw(mcmc_infchain *C) {
   const int size = sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
   const fftw_plan p = fftw_plan_dft_c2r_2d(C->nj, C->nk, uk, C->currentPhysicalState, FFTW_ESTIMATE);
@@ -244,7 +244,7 @@ void infmcmc_seedWithPriorDraw(INFCHAIN *C) {
   fftw_free(uk);
 }
 
-void infmcmc_seedWithDivFreePriorDraw(INFCHAIN *C1, INFCHAIN *C2) {
+void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2) {
   const int size = sizeof(fftw_complex) * C1->nj * ((C1->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
   const fftw_plan p = fftw_plan_dft_c2r_2d(C1->nj, C1->nk, uk, C1->currentPhysicalState, FFTW_ESTIMATE);
@@ -264,7 +264,7 @@ void infmcmc_seedWithDivFreePriorDraw(INFCHAIN *C1, INFCHAIN *C2) {
   fftw_free(uk);
 }
 
-void infmcmc_proposeRWMH(INFCHAIN *C) {
+void infmcmc_proposeRWMH(mcmc_infchain *C) {
   int j, k;
   const int maxk = (C->nk >> 1) + 1;
   const int N = C->nj * C->nk;
@@ -291,7 +291,7 @@ void infmcmc_proposeRWMH(INFCHAIN *C) {
   free(u);
 }
 
-void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc) {
+void infmcmc_adaptRWMHStepSize(mcmc_infchain *C, double inc) {
   // Adapt to stay in 20-30% range.
   int adaptFreq = 100;
   double rate;
@@ -317,7 +317,7 @@ void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc) {
   }
 }
 
-void infmcmc_proposeDivFreeRWMH(INFCHAIN *C1, INFCHAIN *C2) {
+void infmcmc_proposeDivFreeRWMH(mcmc_infchain *C1, mcmc_infchain *C2) {
   int j, k;
   const int maxk = (C1->nk >> 1) + 1;
   const int N = C1->nj * C1->nk;
@@ -354,7 +354,7 @@ void infmcmc_proposeDivFreeRWMH(INFCHAIN *C1, INFCHAIN *C2) {
   free(u);
 }
 
-void infmcmc_updateAvgs(INFCHAIN *C) {
+void infmcmc_updateAvgs(mcmc_infchain *C) {
   int j, k;
   double deltar;
   fftw_complex deltac;
@@ -410,7 +410,7 @@ void infmcmc_updateAvgs(INFCHAIN *C) {
   C->avgAccProb += ((C->accProb - C->avgAccProb) / C->currentIter);
 }
 
-void infmcmc_updateRWMH(INFCHAIN *C, double logLHDOfProposal) {
+void infmcmc_updateRWMH(mcmc_infchain *C, double logLHDOfProposal) {
   double alpha;
   
   alpha = exp(C->logLHDCurrentState - logLHDOfProposal);
@@ -429,7 +429,7 @@ void infmcmc_updateRWMH(INFCHAIN *C, double logLHDOfProposal) {
   infmcmc_updateAvgs(C);
 }
 
-void infmcmc_updateVectorFieldRWMH(INFCHAIN *C1, INFCHAIN *C2, double logLHDOfProposal) {
+void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double logLHDOfProposal) {
   double alpha;
   
   // log likelihoods will be the same for both chains
@@ -459,15 +459,15 @@ void infmcmc_updateVectorFieldRWMH(INFCHAIN *C1, INFCHAIN *C2, double logLHDOfPr
   infmcmc_updateAvgs(C2);
 }
 
-void infmcmc_setRWMHStepSize(INFCHAIN *C, double beta) {
+void infmcmc_setRWMHStepSize(mcmc_infchain *C, double beta) {
   C->rwmhStepSize = beta;
 }
 
-void infmcmc_setPriorAlpha(INFCHAIN *C, double alpha) {
+void infmcmc_setPriorAlpha(mcmc_infchain *C, double alpha) {
   C->alphaPrior = alpha;
 }
 
-void infmcmc_setPriorVar(INFCHAIN *C, double var) {
+void infmcmc_setPriorVar(mcmc_infchain *C, double var) {
   C->priorVar = var;
   C->priorStd = sqrt(var);
 }
@@ -486,15 +486,15 @@ double L2Field(fftw_complex *uk, int nj, int nk) {
   return 2.0 * sum;
 }
 
-double infmcmc_L2Current(INFCHAIN *C) {
+double infmcmc_L2Current(mcmc_infchain *C) {
   return L2Field(C->currentSpectralState, C->nj, C->nk);
 }
 
-double infmcmc_L2Proposed(INFCHAIN *C) {
+double infmcmc_L2Proposed(mcmc_infchain *C) {
   return L2Field(C->proposedSpectralState, C->nj, C->nk);
 }
 
-double infmcmc_L2Prior(INFCHAIN *C) {
+double infmcmc_L2Prior(mcmc_infchain *C) {
   return L2Field(C->priorDraw, C->nj, C->nk);
 }
 
@@ -591,11 +591,11 @@ void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCo
   */
 }
 
-void setRWMHStepSize(CHAIN *C, double stepSize) {
+void setRWMHStepSize(mcmc_infchain *C, double stepSize) {
   C->rwmhStepSize = stepSize;
 }
 
-void resetAvgs(CHAIN *C) {
+void resetAvgs(mcmc_infchain *C) {
   /*
     Sets avgPhysicalState to currentPhysicalState and
          avgSpectralState to currentSpectralState
@@ -605,12 +605,12 @@ void resetAvgs(CHAIN *C) {
   memcpy(C->avgSpectralState, C->currentSpectralState, size_doublenj * ((C->nk >> 1) + 1));
 }
 
-void resetVar(CHAIN *C) {
+void resetVar(mcmc_infchain *C) {
   // Sets varPhysicalState to 0
   memset(C->varPhysicalState, 0, sizeof(double) * C->nj * C->nk);
 }
 
-void proposeIndependence(CHAIN *C) {
+void proposeIndependence(mcmc_infchain *C) {
   const int maxk = (C->nk >> 1) + 1;
   
   memcpy(C->proposedSpectralState, C->priorDraw, sizeof(fftw_complex) * C->nj * maxk);
@@ -628,7 +628,7 @@ double lsqFunctional(const double * const data, const double * const obsVec, con
   return sum1 / (2.0 * obsStdDev * obsStdDev);
 }
 
-void acceptReject(CHAIN *C) {
+void acceptReject(mcmc_infchain *C) {
   const double phi1 = lsqFunctional(C->data, C->currentStateObservations, C->sizeObsVector, C->obsStdDev);
   const double phi2 = lsqFunctional(C->data, C->proposedStateObservations, C->sizeObsVector, C->obsStdDev);
   double tempAccProb = exp(phi1 - phi2);
@@ -651,19 +651,19 @@ void acceptReject(CHAIN *C) {
 }
 
 //
-//void updateChain(CHAIN *C) {
+//void updateChain(mcmc_infchain *C) {
 //C->currentIter++;
-//void updateAvgs(CHAIN *C);
-//void updateVar(CHAIN *C);
+//void updateAvgs(mcmc_infchain *C);
+//void updateVar(mcmc_infchain *C);
 /*
 int main(void) {
   int nj = 32, nk = 32, sizeObsVector = 0;
   unsigned long int randseed = 0;
   
   FILE *fp;
-  CHAIN *C;
+  mcmc_infchain *C;
   
-  C = (CHAIN *)malloc(sizeof(CHAIN));
+  C = (mcmc_infchain *)malloc(sizeof(mcmc_infchain));
   
   initChain(C, nj, nk, sizeObsVector, randseed);
   

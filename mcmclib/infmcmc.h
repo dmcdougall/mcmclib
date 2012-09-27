@@ -10,7 +10,7 @@
 //void updateMean(CHAIN *C);
 //void updateVar(CHAIN *C);
 
-struct _CHAIN {
+struct _mcmc_infchain {
   int nj, nk; // number of Fourier coefficients in x/y direction respectively
   int numKeptSamples;
   int sizeObsVector;
@@ -18,13 +18,14 @@ struct _CHAIN {
   int accepted;
   double _shortTimeAccProbAvg;
   double _bLow, _bHigh;
-  
+
   double *currentPhysicalState, *avgPhysicalState, *varPhysicalState, *_M2;
   double *proposedPhysicalState;
   double logLHDCurrentState;
+
   double accProb, avgAccProb;
   double rwmhStepSize, alphaPrior, priorVar, priorStd;
-  
+
   // -- potentially not used --
   double *currentStateObservations, *proposedStateObservations;
   double *data;
@@ -32,40 +33,39 @@ struct _CHAIN {
   double currentStateL2Norm2;
   double obsStdDev;  
   // --------------------------
-  
+
   fftw_complex *currentSpectralState, *avgSpectralState;
   fftw_complex *priorDraw, *proposedSpectralState;
-  
+
   fftw_plan _c2r;
   fftw_plan _r2c;
-  
+
   gsl_rng *r;
 };
 
-typedef struct _CHAIN CHAIN;
-typedef struct _CHAIN INFCHAIN;
+typedef struct _mcmc_infchain mcmc_infchain;
 
-void infmcmc_initChain(INFCHAIN *C, const int nj, const int nk);
-void infmcmc_freeChain(INFCHAIN *C);
-void infmcmc_resetChain(INFCHAIN *C);
-void infmcmc_proposeRWMH(INFCHAIN *C);
-void infmcmc_updateRWMH(INFCHAIN *C, double logLHDOfProposal);
-void infmcmc_seedWithPriorDraw(INFCHAIN *C);
-void infmcmc_writeChainInfo(const INFCHAIN *C, FILE *fp);
-void infmcmc_writeVFChain(const INFCHAIN *U, const INFCHAIN *V, FILE *fp);
-void infmcmc_writeChain(const INFCHAIN *C, FILE *fp);
-void infmcmc_printChain(INFCHAIN *C);
-void infmcmc_setRWMHStepSize(INFCHAIN *C, double beta);
-void infmcmc_adaptRWMHStepSize(INFCHAIN *C, double inc);
-void infmcmc_setPriorAlpha(INFCHAIN *C, double alpha);
-void infmcmc_setPriorVar(INFCHAIN *C, double var);
-double infmcmc_L2Current(INFCHAIN *C);
-double infmcmc_L2Proposed(INFCHAIN *C);
-double infmcmc_L2Prior(INFCHAIN *C);
+void infmcmc_initChain(mcmc_infchain *C, const int nj, const int nk);
+void infmcmc_freeChain(mcmc_infchain *C);
+void infmcmc_resetChain(mcmc_infchain *C);
+void infmcmc_proposeRWMH(mcmc_infchain *C);
+void infmcmc_updateRWMH(mcmc_infchain *C, double logLHDOfProposal);
+void infmcmc_seedWithPriorDraw(mcmc_infchain *C);
+void infmcmc_writeChainInfo(const mcmc_infchain *C, FILE *fp);
+void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp);
+void infmcmc_writeChain(const mcmc_infchain *C, FILE *fp);
+void infmcmc_printChain(mcmc_infchain *C);
+void infmcmc_setRWMHStepSize(mcmc_infchain *C, double beta);
+void infmcmc_adaptRWMHStepSize(mcmc_infchain *C, double inc);
+void infmcmc_setPriorAlpha(mcmc_infchain *C, double alpha);
+void infmcmc_setPriorVar(mcmc_infchain *C, double var);
+double infmcmc_L2Current(mcmc_infchain *C);
+double infmcmc_L2Proposed(mcmc_infchain *C);
+double infmcmc_L2Prior(mcmc_infchain *C);
 
-void infmcmc_seedWithDivFreePriorDraw(INFCHAIN *C1, INFCHAIN *C2);
-void infmcmc_proposeDivFreeRWMH(INFCHAIN *C1, INFCHAIN *C2);
-void infmcmc_updateVectorFieldRWMH(INFCHAIN *C1, INFCHAIN *C2, double logLHDOfProposal);
+void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2);
+void infmcmc_proposeDivFreeRWMH(mcmc_infchain *C1, mcmc_infchain *C2);
+void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double logLHDOfProposal);
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 
