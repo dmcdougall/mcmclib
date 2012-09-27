@@ -13,7 +13,7 @@
 #define nj1 32
 #define nk1 32
 
-void infmcmc_initChain(mcmc_infchain *chain, const int nj, const int nk) {
+void mcmc_init_infchain(mcmc_infchain *chain, const int nj, const int nk) {
   const int maxk      = (nk >> 1) + 1;
   const int sspectral = sizeof(fftw_complex) * nj * maxk;
   const int sphysical = sizeof(double      ) * nj * nk;
@@ -86,7 +86,7 @@ void infmcmc_initChain(mcmc_infchain *chain, const int nj, const int nk) {
   chain->_r2c = fftw_plan_dft_r2c_2d(nj, nk, chain->current_physical_state, chain->current_spectral_state, FFTW_MEASURE);
 }
 
-void infmcmc_freeChain(mcmc_infchain *chain) {
+void mcmc_free_infchain(mcmc_infchain *chain) {
   // Free all allocated memory used by the chain
   free(chain->current_physical_state);
   free(chain->avg_physical_state);
@@ -104,12 +104,12 @@ void infmcmc_freeChain(mcmc_infchain *chain) {
   gsl_rng_free(chain->r);
 }
 
-void infmcmc_resetChain(mcmc_infchain *chain) {
-  infmcmc_freeChain(chain);
-  infmcmc_initChain(chain, chain->nj, chain->nk);
+void mcmc_reset_infchain(mcmc_infchain *chain) {
+  mcmc_free_infchain(chain);
+  mcmc_init_infchain(chain, chain->nj, chain->nk);
 }
 
-void infmcmc_writeChain(const mcmc_infchain *chain, FILE *fp) {
+void mcmc_write_infchain(const mcmc_infchain *chain, FILE *fp) {
   const int s = chain->nj * chain->nk;
   
   fwrite(&(chain->nj),                 sizeof(int),    1,         fp);
@@ -123,12 +123,12 @@ void infmcmc_writeChain(const mcmc_infchain *chain, FILE *fp) {
   fwrite(&(chain->avg_acc_prob),         sizeof(double), 1,         fp);
 }
 
-void infmcmc_writeChainInfo(const mcmc_infchain *chain, FILE *fp) {
+void mcmc_write_infchain_info(const mcmc_infchain *chain, FILE *fp) {
   fwrite(&(chain->nj),             sizeof(int), 1, fp);
   fwrite(&(chain->nk),             sizeof(int), 1, fp);
 }
 
-void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp) {
+void mcmc_write_vectorfield_infchain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp) {
   const int s = U->nj * U->nk;
   
   fwrite(U->current_physical_state,  sizeof(double), s,         fp);
@@ -142,7 +142,7 @@ void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *
   fwrite(&(U->avg_acc_prob),         sizeof(double), 1,         fp);
 }
 
-void infmcmc_printChain(mcmc_infchain *chain) {
+void mcmc_print_infchain(mcmc_infchain *chain) {
   printf("Iteration %d\n", chain->current_iter);
   printf("-- Length is         %d x %d\n", chain->nj, chain->nk);
   printf("-- llhd val is       %lf\n", chain->log_likelihood_current_state);
@@ -154,7 +154,7 @@ void infmcmc_printChain(mcmc_infchain *chain) {
   //finmcmc_printVarState(C);
 }
 
-void randomPriorDraw(mcmc_infchain *chain) {
+void random_prior_draw(mcmc_infchain *chain) {
   int j, k;
   const int maxk = (chain->nk >> 1) + 1;
   const int nko2 = chain->nk >> 1;
@@ -191,14 +191,14 @@ void randomPriorDraw(mcmc_infchain *chain) {
   }
 }
 
-void randomDivFreePriorDraw(mcmc_infchain *chain1, mcmc_infchain *chain2) {
+void random_divfree_prior_draw(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   int j, k;
   const int maxk = (chain1->nk >> 1) + 1;
   const int njo2 = chain2->nj >> 1;
   const int nko2 = chain1->nk >> 1;
   double modk;
   
-  randomPriorDraw(chain1);
+  random_prior_draw(chain1);
   
   for (j = 0; j < chain1->nj; j++) {
     for (k = 0; k < maxk; k++) {
@@ -229,12 +229,12 @@ void randomDivFreePriorDraw(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   }
 }
 
-void infmcmc_seedWithPriorDraw(mcmc_infchain *chain) {
+void mcmc_seed_with_prior(mcmc_infchain *chain) {
   const int size = sizeof(fftw_complex) * chain->nj * ((chain->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
   const fftw_plan p = fftw_plan_dft_c2r_2d(chain->nj, chain->nk, uk, chain->current_physical_state, FFTW_ESTIMATE);
   
-  randomPriorDraw(chain);
+  random_prior_draw(chain);
   memcpy(uk, chain->prior_draw, size);
   
   //fixme: put into current spectral state
@@ -244,12 +244,12 @@ void infmcmc_seedWithPriorDraw(mcmc_infchain *chain) {
   fftw_free(uk);
 }
 
-void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *chain1, mcmc_infchain *chain2) {
+void mcmc_seed_with_divfree_prior(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   const int size = sizeof(fftw_complex) * chain1->nj * ((chain1->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
   const fftw_plan p = fftw_plan_dft_c2r_2d(chain1->nj, chain1->nk, uk, chain1->current_physical_state, FFTW_ESTIMATE);
   
-  randomDivFreePriorDraw(chain1, chain2);
+  random_divfree_prior_draw(chain1, chain2);
   
   memcpy(uk, chain1->prior_draw, size);
   fftw_execute_dft_c2r(p, uk, chain1->current_physical_state);
@@ -264,7 +264,7 @@ void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *chain1, mcmc_infchain *chai
   fftw_free(uk);
 }
 
-void infmcmc_proposeRWMH(mcmc_infchain *chain) {
+void mcmc_propose_RWMH(mcmc_infchain *chain) {
   int j, k;
   const int maxk = (chain->nk >> 1) + 1;
   const int N = chain->nj * chain->nk;
@@ -276,7 +276,7 @@ void infmcmc_proposeRWMH(mcmc_infchain *chain) {
   fftw_execute_dft_r2c(chain->_r2c, u, chain->current_spectral_state);
   
   // Draw from prior distribution
-  randomPriorDraw(chain);
+  random_prior_draw(chain);
   
   for(j = 0; j < chain->nj; j++) {
     for(k = 0; k < maxk; k++) {
@@ -291,7 +291,7 @@ void infmcmc_proposeRWMH(mcmc_infchain *chain) {
   free(u);
 }
 
-void infmcmc_adaptRWMHStepSize(mcmc_infchain *chain, double inc) {
+void mcmc_adapt_RWMH_stepsize(mcmc_infchain *chain, double inc) {
   // Adapt to stay in 20-30% range.
   int adaptFreq = 100;
   double rate;
@@ -317,7 +317,7 @@ void infmcmc_adaptRWMHStepSize(mcmc_infchain *chain, double inc) {
   }
 }
 
-void infmcmc_proposeDivFreeRWMH(mcmc_infchain *chain1, mcmc_infchain *chain2) {
+void mcmc_propose_divfree_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   int j, k;
   const int maxk = (chain1->nk >> 1) + 1;
   const int N = chain1->nj * chain1->nk;
@@ -332,7 +332,7 @@ void infmcmc_proposeDivFreeRWMH(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   fftw_execute_dft_r2c(chain2->_r2c, u, chain2->current_spectral_state);
     
   // Draw from prior distribution
-  randomDivFreePriorDraw(chain1, chain2);
+  random_divfree_prior_draw(chain1, chain2);
   
   for(j = 0; j < chain1->nj; j++) {
     for(k = 0; k < maxk; k++) {
@@ -354,7 +354,7 @@ void infmcmc_proposeDivFreeRWMH(mcmc_infchain *chain1, mcmc_infchain *chain2) {
   free(u);
 }
 
-void infmcmc_updateAvgs(mcmc_infchain *chain) {
+void mcmc_update_avgs(mcmc_infchain *chain) {
   int j, k;
   double deltar;
   fftw_complex deltac;
@@ -410,7 +410,7 @@ void infmcmc_updateAvgs(mcmc_infchain *chain) {
   chain->avg_acc_prob += ((chain->acc_prob - chain->avg_acc_prob) / chain->current_iter);
 }
 
-void infmcmc_updateRWMH(mcmc_infchain *chain, double logLHDOfProposal) {
+void mcmc_update_RWMH(mcmc_infchain *chain, double logLHDOfProposal) {
   double alpha;
   
   alpha = exp(chain->log_likelihood_current_state - logLHDOfProposal);
@@ -426,10 +426,10 @@ void infmcmc_updateRWMH(mcmc_infchain *chain, double logLHDOfProposal) {
     chain->log_likelihood_current_state = logLHDOfProposal;
   }
   
-  infmcmc_updateAvgs(chain);
+  mcmc_update_avgs(chain);
 }
 
-void infmcmc_updateVectorFieldRWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, double logLHDOfProposal) {
+void mcmc_update_vectorfield_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, double logLHDOfProposal) {
   double alpha;
   
   // log likelihoods will be the same for both chains
@@ -455,19 +455,19 @@ void infmcmc_updateVectorFieldRWMH(mcmc_infchain *chain1, mcmc_infchain *chain2,
     chain2->log_likelihood_current_state = logLHDOfProposal;
   }
   
-  infmcmc_updateAvgs(chain1);
-  infmcmc_updateAvgs(chain2);
+  mcmc_update_avgs(chain1);
+  mcmc_update_avgs(chain2);
 }
 
-void infmcmc_setRWMHStepSize(mcmc_infchain *chain, double beta) {
+void mcmc_set_RWMH_stepsize(mcmc_infchain *chain, double beta) {
   chain->rwmh_stepsize = beta;
 }
 
-void infmcmc_setPriorAlpha(mcmc_infchain *chain, double alpha) {
+void mcmc_set_prior_alpha(mcmc_infchain *chain, double alpha) {
   chain->alpha_prior = alpha;
 }
 
-void infmcmc_setPriorVar(mcmc_infchain *chain, double var) {
+void mcmc_set_prior_var(mcmc_infchain *chain, double var) {
   chain->prior_var = var;
   chain->prior_std = sqrt(var);
 }
@@ -486,15 +486,15 @@ double L2Field(fftw_complex *uk, int nj, int nk) {
   return 2.0 * sum;
 }
 
-double infmcmc_L2Current(mcmc_infchain *chain) {
+double mcmc_current_L2(mcmc_infchain *chain) {
   return L2Field(chain->current_spectral_state, chain->nj, chain->nk);
 }
 
-double infmcmc_L2Proposed(mcmc_infchain *chain) {
+double mcmc_proposed_L2(mcmc_infchain *chain) {
   return L2Field(chain->proposed_spectral_state, chain->nj, chain->nk);
 }
 
-double infmcmc_L2Prior(mcmc_infchain *chain) {
+double mcmc_prior_L2(mcmc_infchain *chain) {
   return L2Field(chain->prior_draw, chain->nj, chain->nk);
 }
 
