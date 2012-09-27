@@ -45,27 +45,27 @@ struct _mcmc_infchain {
 
 typedef struct _mcmc_infchain mcmc_infchain;
 
-void infmcmc_initChain(mcmc_infchain *C, const int nj, const int nk);
-void infmcmc_freeChain(mcmc_infchain *C);
-void infmcmc_resetChain(mcmc_infchain *C);
-void infmcmc_proposeRWMH(mcmc_infchain *C);
-void infmcmc_updateRWMH(mcmc_infchain *C, double logLHDOfProposal);
-void infmcmc_seedWithPriorDraw(mcmc_infchain *C);
-void infmcmc_writeChainInfo(const mcmc_infchain *C, FILE *fp);
-void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp);
-void infmcmc_writeChain(const mcmc_infchain *C, FILE *fp);
-void infmcmc_printChain(mcmc_infchain *C);
-void infmcmc_setRWMHStepSize(mcmc_infchain *C, double beta);
-void infmcmc_adaptRWMHStepSize(mcmc_infchain *C, double inc);
-void infmcmc_setPriorAlpha(mcmc_infchain *C, double alpha);
-void infmcmc_setPriorVar(mcmc_infchain *C, double var);
-double infmcmc_L2Current(mcmc_infchain *C);
-double infmcmc_L2Proposed(mcmc_infchain *C);
-double infmcmc_L2Prior(mcmc_infchain *C);
+void mcmc_init_infchain(mcmc_infchain *C, const int nj, const int nk);
+void mcmc_free_infchain(mcmc_infchain *C);
+void mcmc_reset_infchain(mcmc_infchain *C);
+void mcmc_propose_RWMH(mcmc_infchain *C);
+void mcmc_update_RWMH(mcmc_infchain *C, double logLHDOfProposal);
+void mcmc_seed_with_prior(mcmc_infchain *C);
+void mcmc_write_infchain_info(const mcmc_infchain *C, FILE *fp);
+void mcmc_write_vectorfield_infchain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp);
+void mcmc_write_infchain(const mcmc_infchain *C, FILE *fp);
+void mcmc_print_infchain(mcmc_infchain *C);
+void mcmc_set_RWMH_stepsize(mcmc_infchain *C, double beta);
+void mcmc_adapt_RWMH_stepsize(mcmc_infchain *C, double inc);
+void mcmc_set_prior_alpha(mcmc_infchain *C, double alpha);
+void mcmc_set_prior_var(mcmc_infchain *C, double var);
+double mcmc_current_L2(mcmc_infchain *C);
+double mcmc_proposed_L2(mcmc_infchain *C);
+double mcmc_prior_L2(mcmc_infchain *C);
 
-void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2);
-void infmcmc_proposeDivFreeRWMH(mcmc_infchain *C1, mcmc_infchain *C2);
-void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double logLHDOfProposal);
+void mcmc_seed_with_divfree_prior(mcmc_infchain *C1, mcmc_infchain *C2);
+void mcmc_propose_divfree_RWMH(mcmc_infchain *C1, mcmc_infchain *C2);
+void mcmc_update_vectorfield_RWMH(mcmc_infchain *C1, mcmc_infchain *C2, double logLHDOfProposal);
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 
