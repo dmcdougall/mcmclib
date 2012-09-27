@@ -25,47 +25,47 @@ void infmcmc_initChain(mcmc_infchain *C, const int nj, const int nk) {
   C->nj = nj;
   C->nk = nk;
   //C->sizeObsVector = sizeObsVector;
-  C->currentIter = 0;
+  C->current_iter = 0;
   C->accepted = 0;
-  C->_shortTimeAccProbAvg = 0.0;
+  C->_short_time_acc_prob_avg = 0.0;
   C->_bLow = 0.0;
   C->_bHigh = 1.0;
   
   // Allocate a ton of memory
-  C->currentPhysicalState      = (double *)malloc(sphysical);
-  C->avgPhysicalState          = (double *)malloc(sphysical);
-  C->varPhysicalState          = (double *)malloc(sphysical);
-  C->proposedPhysicalState     = (double *)malloc(sphysical);
+  C->current_physical_state      = (double *)malloc(sphysical);
+  C->avg_physical_state          = (double *)malloc(sphysical);
+  C->var_physical_state          = (double *)malloc(sphysical);
+  C->proposed_physical_state     = (double *)malloc(sphysical);
   C->_M2                       = (double *)malloc(sphysical);
-  //C->currentStateObservations  = (double *)malloc(obsVecMem);
-  //C->proposedStateObservations = (double *)malloc(obsVecMem);
+  //C->current_state_observations  = (double *)malloc(obsVecMem);
+  //C->proposed_state_observations = (double *)malloc(obsVecMem);
   //C->data                      = (double *)malloc(obsVecMem);
   
-  C->currentSpectralState  = (fftw_complex *)fftw_malloc(sspectral);
-  C->avgSpectralState      = (fftw_complex *)fftw_malloc(sspectral);
-  C->priorDraw             = (fftw_complex *)fftw_malloc(sspectral);
-  C->proposedSpectralState = (fftw_complex *)fftw_malloc(sspectral);
+  C->current_spectral_state  = (fftw_complex *)fftw_malloc(sspectral);
+  C->avg_spectral_state      = (fftw_complex *)fftw_malloc(sspectral);
+  C->prior_draw             = (fftw_complex *)fftw_malloc(sspectral);
+  C->proposed_spectral_state = (fftw_complex *)fftw_malloc(sspectral);
   
-  memset(C->currentPhysicalState,  0, sphysical);
-  memset(C->avgPhysicalState,      0, sphysical);
-  memset(C->varPhysicalState,      0, sphysical);
-  memset(C->proposedPhysicalState, 0, sphysical);
+  memset(C->current_physical_state,  0, sphysical);
+  memset(C->avg_physical_state,      0, sphysical);
+  memset(C->var_physical_state,      0, sphysical);
+  memset(C->proposed_physical_state, 0, sphysical);
   memset(C->_M2,                   0, sphysical);
-  memset(C->currentSpectralState,  0, sspectral);
-  memset(C->avgSpectralState,      0, sspectral);
-  memset(C->proposedSpectralState, 0, sspectral);
+  memset(C->current_spectral_state,  0, sspectral);
+  memset(C->avg_spectral_state,      0, sspectral);
+  memset(C->proposed_spectral_state, 0, sspectral);
   
-  C->accProb = 0.0;
-  C->avgAccProb = 0.0;
-  C->logLHDCurrentState = 0.0;
+  C->acc_prob = 0.0;
+  C->avg_acc_prob = 0.0;
+  C->log_likelihood_current_state = 0.0;
   
   /*
    * Set some default values
    */
-  C->alphaPrior = 3.0;
-  C->rwmhStepSize = 1e-4;
-  C->priorVar = 1.0;
-  C->priorStd = 1.0;
+  C->alpha_prior = 3.0;
+  C->rwmh_stepsize = 1e-4;
+  C->prior_var = 1.0;
+  C->prior_std = 1.0;
   
   C->r = gsl_rng_alloc(gsl_rng_taus2);
   
@@ -82,24 +82,24 @@ void infmcmc_initChain(mcmc_infchain *C, const int nj, const int nk) {
     printf("Using zero seed\n");
   }
   
-  C->_c2r = fftw_plan_dft_c2r_2d(nj, nk, C->proposedSpectralState, C->proposedPhysicalState, FFTW_MEASURE);
-  C->_r2c = fftw_plan_dft_r2c_2d(nj, nk, C->currentPhysicalState, C->currentSpectralState, FFTW_MEASURE);
+  C->_c2r = fftw_plan_dft_c2r_2d(nj, nk, C->proposed_spectral_state, C->proposed_physical_state, FFTW_MEASURE);
+  C->_r2c = fftw_plan_dft_r2c_2d(nj, nk, C->current_physical_state, C->current_spectral_state, FFTW_MEASURE);
 }
 
 void infmcmc_freeChain(mcmc_infchain *C) {
   // Free all allocated memory used by the chain
-  free(C->currentPhysicalState);
-  free(C->avgPhysicalState);
-  free(C->varPhysicalState);
-  free(C->proposedPhysicalState);
+  free(C->current_physical_state);
+  free(C->avg_physical_state);
+  free(C->var_physical_state);
+  free(C->proposed_physical_state);
   free(C->_M2);
-  //free(C->currentStateObservations);
-  //free(C->proposedStateObservations);
+  //free(C->current_state_observations);
+  //free(C->proposed_state_observations);
   
-  fftw_free(C->currentSpectralState);
-  fftw_free(C->avgSpectralState);
-  fftw_free(C->priorDraw);
-  fftw_free(C->proposedSpectralState);
+  fftw_free(C->current_spectral_state);
+  fftw_free(C->avg_spectral_state);
+  fftw_free(C->prior_draw);
+  fftw_free(C->proposed_spectral_state);
   
   gsl_rng_free(C->r);
 }
@@ -114,13 +114,13 @@ void infmcmc_writeChain(const mcmc_infchain *C, FILE *fp) {
   
   fwrite(&(C->nj),                 sizeof(int),    1,         fp);
   fwrite(&(C->nk),                 sizeof(int),    1,         fp);
-  fwrite(&(C->currentIter),        sizeof(int),    1,         fp);
-  fwrite(C->currentPhysicalState,  sizeof(double), s,         fp);
-  fwrite(C->avgPhysicalState,      sizeof(double), s,         fp);
-  fwrite(C->varPhysicalState,      sizeof(double), s,         fp);
-  fwrite(&(C->logLHDCurrentState), sizeof(double), 1,         fp);
-  fwrite(&(C->accProb),            sizeof(double), 1,         fp);
-  fwrite(&(C->avgAccProb),         sizeof(double), 1,         fp);
+  fwrite(&(C->current_iter),        sizeof(int),    1,         fp);
+  fwrite(C->current_physical_state,  sizeof(double), s,         fp);
+  fwrite(C->avg_physical_state,      sizeof(double), s,         fp);
+  fwrite(C->var_physical_state,      sizeof(double), s,         fp);
+  fwrite(&(C->log_likelihood_current_state), sizeof(double), 1,         fp);
+  fwrite(&(C->acc_prob),            sizeof(double), 1,         fp);
+  fwrite(&(C->avg_acc_prob),         sizeof(double), 1,         fp);
 }
 
 void infmcmc_writeChainInfo(const mcmc_infchain *C, FILE *fp) {
@@ -131,24 +131,24 @@ void infmcmc_writeChainInfo(const mcmc_infchain *C, FILE *fp) {
 void infmcmc_writeVFChain(const mcmc_infchain *U, const mcmc_infchain *V, FILE *fp) {
   const int s = U->nj * U->nk;
   
-  fwrite(U->currentPhysicalState,  sizeof(double), s,         fp);
-  fwrite(U->avgPhysicalState,      sizeof(double), s,         fp);
-  fwrite(U->varPhysicalState,      sizeof(double), s,         fp);
-  fwrite(V->currentPhysicalState,  sizeof(double), s,         fp);
-  fwrite(V->avgPhysicalState,      sizeof(double), s,         fp);
-  fwrite(V->varPhysicalState,      sizeof(double), s,         fp);
-  fwrite(&(U->logLHDCurrentState), sizeof(double), 1,         fp);
-  fwrite(&(U->accProb),            sizeof(double), 1,         fp);
-  fwrite(&(U->avgAccProb),         sizeof(double), 1,         fp);
+  fwrite(U->current_physical_state,  sizeof(double), s,         fp);
+  fwrite(U->avg_physical_state,      sizeof(double), s,         fp);
+  fwrite(U->var_physical_state,      sizeof(double), s,         fp);
+  fwrite(V->current_physical_state,  sizeof(double), s,         fp);
+  fwrite(V->avg_physical_state,      sizeof(double), s,         fp);
+  fwrite(V->var_physical_state,      sizeof(double), s,         fp);
+  fwrite(&(U->log_likelihood_current_state), sizeof(double), 1,         fp);
+  fwrite(&(U->acc_prob),            sizeof(double), 1,         fp);
+  fwrite(&(U->avg_acc_prob),         sizeof(double), 1,         fp);
 }
 
 void infmcmc_printChain(mcmc_infchain *C) {
-  printf("Iteration %d\n", C->currentIter);
+  printf("Iteration %d\n", C->current_iter);
   printf("-- Length is         %d x %d\n", C->nj, C->nk);
-  printf("-- llhd val is       %lf\n", C->logLHDCurrentState);
-  printf("-- Acc. prob is      %.10lf\n", C->accProb);
-  printf("-- Avg. acc. prob is %.10lf\n", C->avgAccProb);
-  printf("-- Beta is           %.10lf\n\n", C->rwmhStepSize);
+  printf("-- llhd val is       %lf\n", C->log_likelihood_current_state);
+  printf("-- Acc. prob is      %.10lf\n", C->acc_prob);
+  printf("-- Avg. acc. prob is %.10lf\n", C->avg_acc_prob);
+  printf("-- Beta is           %.10lf\n\n", C->rwmh_stepsize);
   //finmcmc_printCurrentState(C);
   //finmcmc_printAvgState(C);
   //finmcmc_printVarState(C);
@@ -166,25 +166,25 @@ void randomPriorDraw(mcmc_infchain *C) {
   
   for(j = 0; j < C->nj; j++) {
     for(k = 0; k < maxk; k++) {
-      xrand = gsl_ran_gaussian_ziggurat(C->r, C->priorStd);
+      xrand = gsl_ran_gaussian_ziggurat(C->r, C->prior_std);
       if((j == 0) && (k == 0)) {
-        C->priorDraw[0] = 0.0;
+        C->prior_draw[0] = 0.0;
       }
       else if((j == njo2) && (k == nko2)) {
-        C->priorDraw[maxk*njo2+nko2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
+        C->prior_draw[maxk*njo2+nko2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alpha_prior/2.0);
       }
       else if((j == 0) && (k == nko2)) {
-        C->priorDraw[nko2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
+        C->prior_draw[nko2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alpha_prior/2.0);
       }
       else if((j == njo2) && (k == 0)) {
-        C->priorDraw[maxk*njo2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
+        C->prior_draw[maxk*njo2] = /*C->nj */ xrand / pow(c * ((j * j) + (k * k)), (double)C->alpha_prior/2.0);
       }
       else {
         xrand /= sqrt(2.0);
-        yrand = gsl_ran_gaussian_ziggurat(C->r, C->priorStd) / sqrt(2.0);
-        C->priorDraw[maxk*j+k] = /*C->nj */ (xrand + I * yrand) / pow(c * ((j * j) + (k * k)), (double)C->alphaPrior/2.0);
+        yrand = gsl_ran_gaussian_ziggurat(C->r, C->prior_std) / sqrt(2.0);
+        C->prior_draw[maxk*j+k] = /*C->nj */ (xrand + I * yrand) / pow(c * ((j * j) + (k * k)), (double)C->alpha_prior/2.0);
         if(j > njo2) {
-          C->priorDraw[maxk*j+k] = conj(C->priorDraw[maxk*(C->nj-j)+k]);
+          C->prior_draw[maxk*j+k] = conj(C->prior_draw[maxk*(C->nj-j)+k]);
         }
       }
     }
@@ -203,27 +203,27 @@ void randomDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2) {
   for (j = 0; j < C1->nj; j++) {
     for (k = 0; k < maxk; k++) {
       if (j == 0 && k == 0) {
-        C1->priorDraw[0] = 0.0;
-        C2->priorDraw[0] = 0.0;
+        C1->prior_draw[0] = 0.0;
+        C2->prior_draw[0] = 0.0;
         continue;
       }
       
       modk = sqrt(j * j + k * k);
       if (j < njo2) {
-        C2->priorDraw[maxk*j+k] = -j * C1->priorDraw[maxk*j+k] / modk;
+        C2->prior_draw[maxk*j+k] = -j * C1->prior_draw[maxk*j+k] / modk;
       }
       else if (j > njo2) {
-        C2->priorDraw[maxk*j+k] = -(j - C1->nj) * C1->priorDraw[maxk*j+k] / modk;
+        C2->prior_draw[maxk*j+k] = -(j - C1->nj) * C1->prior_draw[maxk*j+k] / modk;
       }
       else {
-        C2->priorDraw[maxk*j+k] = 0.0;
+        C2->prior_draw[maxk*j+k] = 0.0;
       }
       
       if (k < nko2) {
-        C1->priorDraw[maxk*j+k] *= k / modk;
+        C1->prior_draw[maxk*j+k] *= k / modk;
       }
       else {
-        C1->priorDraw[maxk*j+k] = 0.0;
+        C1->prior_draw[maxk*j+k] = 0.0;
       }
     }
   }
@@ -232,10 +232,10 @@ void randomDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2) {
 void infmcmc_seedWithPriorDraw(mcmc_infchain *C) {
   const int size = sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
-  const fftw_plan p = fftw_plan_dft_c2r_2d(C->nj, C->nk, uk, C->currentPhysicalState, FFTW_ESTIMATE);
+  const fftw_plan p = fftw_plan_dft_c2r_2d(C->nj, C->nk, uk, C->current_physical_state, FFTW_ESTIMATE);
   
   randomPriorDraw(C);
-  memcpy(uk, C->priorDraw, size);
+  memcpy(uk, C->prior_draw, size);
   
   //fixme: put into current spectral state
   
@@ -247,18 +247,18 @@ void infmcmc_seedWithPriorDraw(mcmc_infchain *C) {
 void infmcmc_seedWithDivFreePriorDraw(mcmc_infchain *C1, mcmc_infchain *C2) {
   const int size = sizeof(fftw_complex) * C1->nj * ((C1->nk >> 1) + 1);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(size);
-  const fftw_plan p = fftw_plan_dft_c2r_2d(C1->nj, C1->nk, uk, C1->currentPhysicalState, FFTW_ESTIMATE);
+  const fftw_plan p = fftw_plan_dft_c2r_2d(C1->nj, C1->nk, uk, C1->current_physical_state, FFTW_ESTIMATE);
   
   randomDivFreePriorDraw(C1, C2);
   
-  memcpy(uk, C1->priorDraw, size);
-  fftw_execute_dft_c2r(p, uk, C1->currentPhysicalState);
+  memcpy(uk, C1->prior_draw, size);
+  fftw_execute_dft_c2r(p, uk, C1->current_physical_state);
   
-  memcpy(uk, C2->priorDraw, size);
-  fftw_execute_dft_c2r(p, uk, C2->currentPhysicalState);
+  memcpy(uk, C2->prior_draw, size);
+  fftw_execute_dft_c2r(p, uk, C2->current_physical_state);
   
-  memcpy(C1->currentSpectralState, C1->priorDraw, size);
-  memcpy(C2->currentSpectralState, C2->priorDraw, size);
+  memcpy(C1->current_spectral_state, C1->prior_draw, size);
+  memcpy(C2->current_spectral_state, C2->prior_draw, size);
   
   fftw_destroy_plan(p);
   fftw_free(uk);
@@ -268,25 +268,25 @@ void infmcmc_proposeRWMH(mcmc_infchain *C) {
   int j, k;
   const int maxk = (C->nk >> 1) + 1;
   const int N = C->nj * C->nk;
-  const double sqrtOneMinusBeta2 = sqrt(1.0 - C->rwmhStepSize * C->rwmhStepSize);
+  const double sqrtOneMinusBeta2 = sqrt(1.0 - C->rwmh_stepsize * C->rwmh_stepsize);
   double *u = (double *)malloc(sizeof(double) * C->nj * C->nk);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * C->nj * maxk);
   
-  memcpy(u, C->currentPhysicalState, sizeof(double) * C->nj * C->nk);
-  fftw_execute_dft_r2c(C->_r2c, u, C->currentSpectralState);
+  memcpy(u, C->current_physical_state, sizeof(double) * C->nj * C->nk);
+  fftw_execute_dft_r2c(C->_r2c, u, C->current_spectral_state);
   
   // Draw from prior distribution
   randomPriorDraw(C);
   
   for(j = 0; j < C->nj; j++) {
     for(k = 0; k < maxk; k++) {
-      C->proposedSpectralState[maxk*j+k] = sqrtOneMinusBeta2 * C->currentSpectralState[maxk*j+k] + C->rwmhStepSize * C->priorDraw[maxk*j+k];
-      C->proposedSpectralState[maxk*j+k] /= N;
+      C->proposed_spectral_state[maxk*j+k] = sqrtOneMinusBeta2 * C->current_spectral_state[maxk*j+k] + C->rwmh_stepsize * C->prior_draw[maxk*j+k];
+      C->proposed_spectral_state[maxk*j+k] /= N;
     }
   }
   
-  memcpy(uk, C->proposedSpectralState, sizeof(fftw_complex) * C->nj * maxk);
-  fftw_execute_dft_c2r(C->_c2r, uk, C->proposedPhysicalState);
+  memcpy(uk, C->proposed_spectral_state, sizeof(fftw_complex) * C->nj * maxk);
+  fftw_execute_dft_c2r(C->_c2r, uk, C->proposed_physical_state);
   fftw_free(uk);
   free(u);
 }
@@ -296,24 +296,24 @@ void infmcmc_adaptRWMHStepSize(mcmc_infchain *C, double inc) {
   int adaptFreq = 100;
   double rate;
   
-  if (C->currentIter > 0 && C->currentIter % adaptFreq == 0) {
-    rate = (double) C->_shortTimeAccProbAvg / adaptFreq;
+  if (C->current_iter > 0 && C->current_iter % adaptFreq == 0) {
+    rate = (double) C->_short_time_acc_prob_avg / adaptFreq;
     
     if (rate < 0.2) {
-      //C->_bHigh = C->rwmhStepSize;
-      //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
-      C->rwmhStepSize -= inc;
+      //C->_bHigh = C->rwmh_stepsize;
+      //C->rwmh_stepsize = (C->_bLow + C->_bHigh) / 2.0;
+      C->rwmh_stepsize -= inc;
     }
     else if (rate > 0.3) {
-      //C->_bLow = C->rwmhStepSize;
-      //C->rwmhStepSize = (C->_bLow + C->_bHigh) / 2.0;
-      C->rwmhStepSize += inc;
+      //C->_bLow = C->rwmh_stepsize;
+      //C->rwmh_stepsize = (C->_bLow + C->_bHigh) / 2.0;
+      C->rwmh_stepsize += inc;
     }
     
-    C->_shortTimeAccProbAvg = 0.0;
+    C->_short_time_acc_prob_avg = 0.0;
   }
   else {
-    C->_shortTimeAccProbAvg += C->accProb;
+    C->_short_time_acc_prob_avg += C->acc_prob;
   }
 }
 
@@ -321,34 +321,34 @@ void infmcmc_proposeDivFreeRWMH(mcmc_infchain *C1, mcmc_infchain *C2) {
   int j, k;
   const int maxk = (C1->nk >> 1) + 1;
   const int N = C1->nj * C1->nk;
-  const double sqrtOneMinusBeta2 = sqrt(1.0 - C1->rwmhStepSize * C1->rwmhStepSize);
+  const double sqrtOneMinusBeta2 = sqrt(1.0 - C1->rwmh_stepsize * C1->rwmh_stepsize);
   double *u = (double *)malloc(sizeof(double) * C1->nj * C1->nk);
   fftw_complex *uk = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * C1->nj * maxk);
   
-  memcpy(u, C1->currentPhysicalState, sizeof(double) * C1->nj * C1->nk);
-  fftw_execute_dft_r2c(C1->_r2c, u, C1->currentSpectralState);
+  memcpy(u, C1->current_physical_state, sizeof(double) * C1->nj * C1->nk);
+  fftw_execute_dft_r2c(C1->_r2c, u, C1->current_spectral_state);
   
-  memcpy(u, C2->currentPhysicalState, sizeof(double) * C2->nj * C2->nk);
-  fftw_execute_dft_r2c(C2->_r2c, u, C2->currentSpectralState);
+  memcpy(u, C2->current_physical_state, sizeof(double) * C2->nj * C2->nk);
+  fftw_execute_dft_r2c(C2->_r2c, u, C2->current_spectral_state);
     
   // Draw from prior distribution
   randomDivFreePriorDraw(C1, C2);
   
   for(j = 0; j < C1->nj; j++) {
     for(k = 0; k < maxk; k++) {
-      C1->currentSpectralState[maxk*j+k] /= N;
-      C2->currentSpectralState[maxk*j+k] /= N;
-      C1->proposedSpectralState[maxk*j+k] = sqrtOneMinusBeta2 * C1->currentSpectralState[maxk*j+k] + C1->rwmhStepSize * C1->priorDraw[maxk*j+k];
-      //C1->proposedSpectralState[maxk*j+k] /= N;
-      C2->proposedSpectralState[maxk*j+k] = sqrtOneMinusBeta2 * C2->currentSpectralState[maxk*j+k] + C2->rwmhStepSize * C2->priorDraw[maxk*j+k];
-      //C2->proposedSpectralState[maxk*j+k] /= N;
+      C1->current_spectral_state[maxk*j+k] /= N;
+      C2->current_spectral_state[maxk*j+k] /= N;
+      C1->proposed_spectral_state[maxk*j+k] = sqrtOneMinusBeta2 * C1->current_spectral_state[maxk*j+k] + C1->rwmh_stepsize * C1->prior_draw[maxk*j+k];
+      //C1->proposed_spectral_state[maxk*j+k] /= N;
+      C2->proposed_spectral_state[maxk*j+k] = sqrtOneMinusBeta2 * C2->current_spectral_state[maxk*j+k] + C2->rwmh_stepsize * C2->prior_draw[maxk*j+k];
+      //C2->proposed_spectral_state[maxk*j+k] /= N;
     }
   }
   
-  memcpy(uk, C1->proposedSpectralState, sizeof(fftw_complex) * C1->nj * maxk);
-  fftw_execute_dft_c2r(C1->_c2r, uk, C1->proposedPhysicalState);
-  memcpy(uk, C2->proposedSpectralState, sizeof(fftw_complex) * C1->nj * maxk);
-  fftw_execute_dft_c2r(C2->_c2r, uk, C2->proposedPhysicalState);
+  memcpy(uk, C1->proposed_spectral_state, sizeof(fftw_complex) * C1->nj * maxk);
+  fftw_execute_dft_c2r(C1->_c2r, uk, C1->proposed_physical_state);
+  memcpy(uk, C2->proposed_spectral_state, sizeof(fftw_complex) * C1->nj * maxk);
+  fftw_execute_dft_c2r(C2->_c2r, uk, C2->proposed_physical_state);
   
   fftw_free(uk);
   free(u);
@@ -358,28 +358,28 @@ void infmcmc_updateAvgs(mcmc_infchain *C) {
   int j, k;
   double deltar;
   fftw_complex deltac;
-  C->currentIter++;
+  C->current_iter++;
   
   /*
    Update physical vectors
    */
-  if (C->currentIter == 1) {
+  if (C->current_iter == 1) {
     for (j = 0; j < C->nj; j++) {
       for (k = 0; k < C->nk; k++) {
-        deltar = C->currentPhysicalState[C->nk * j + k] - C->avgPhysicalState[C->nk * j + k];
-        C->avgPhysicalState[C->nk * j + k] += (deltar / C->currentIter);
-        C->_M2[C->nk * j + k] += (deltar * (C->currentPhysicalState[C->nk * j + k] - C->avgPhysicalState[C->nk * j + k]));
-        C->varPhysicalState[C->nk * j + k] = -1.0;
+        deltar = C->current_physical_state[C->nk * j + k] - C->avg_physical_state[C->nk * j + k];
+        C->avg_physical_state[C->nk * j + k] += (deltar / C->current_iter);
+        C->_M2[C->nk * j + k] += (deltar * (C->current_physical_state[C->nk * j + k] - C->avg_physical_state[C->nk * j + k]));
+        C->var_physical_state[C->nk * j + k] = -1.0;
       }
     }
   }
   else {
     for (j = 0; j < C->nj; j++) {
       for (k = 0; k < C->nk; k++) {
-        deltar = C->currentPhysicalState[C->nk * j + k] - C->avgPhysicalState[C->nk * j + k];
-        C->avgPhysicalState[C->nk * j + k] += (deltar / C->currentIter);
-        C->_M2[C->nk * j + k] += (deltar * (C->currentPhysicalState[C->nk * j + k] - C->avgPhysicalState[C->nk * j + k]));
-        C->varPhysicalState[C->nk * j + k] = C->_M2[C->nk * j + k] / (C->currentIter - 1);
+        deltar = C->current_physical_state[C->nk * j + k] - C->avg_physical_state[C->nk * j + k];
+        C->avg_physical_state[C->nk * j + k] += (deltar / C->current_iter);
+        C->_M2[C->nk * j + k] += (deltar * (C->current_physical_state[C->nk * j + k] - C->avg_physical_state[C->nk * j + k]));
+        C->var_physical_state[C->nk * j + k] = C->_M2[C->nk * j + k] / (C->current_iter - 1);
       }
     }
   }
@@ -387,19 +387,19 @@ void infmcmc_updateAvgs(mcmc_infchain *C) {
   /*
    Update spectral vectors
   */
-  if (C->currentIter == 1) {
+  if (C->current_iter == 1) {
     for (j = 0; j < C->nj; j++) {
       for (k = 0; k < C->nk/2 + 1; k++) {
-        deltac = C->currentSpectralState[(C->nk/2 + 1) * j + k] - C->avgSpectralState[(C->nk/2 + 1) * j + k];
-        C->avgSpectralState[(C->nk/2 + 1) * j + k] += (deltac / C->currentIter);
+        deltac = C->current_spectral_state[(C->nk/2 + 1) * j + k] - C->avg_spectral_state[(C->nk/2 + 1) * j + k];
+        C->avg_spectral_state[(C->nk/2 + 1) * j + k] += (deltac / C->current_iter);
       }
     }
   }
   else {
     for (j = 0; j < C->nj; j++) {
       for (k = 0; k < C->nk/2 + 1; k++) {
-        deltac = C->currentSpectralState[(C->nk/2 + 1) * j + k] - C->avgSpectralState[(C->nk/2 + 1) * j + k];
-        C->avgSpectralState[(C->nk/2 + 1) * j + k] += (deltac / C->currentIter);
+        deltac = C->current_spectral_state[(C->nk/2 + 1) * j + k] - C->avg_spectral_state[(C->nk/2 + 1) * j + k];
+        C->avg_spectral_state[(C->nk/2 + 1) * j + k] += (deltac / C->current_iter);
       }
     }
   }
@@ -407,23 +407,23 @@ void infmcmc_updateAvgs(mcmc_infchain *C) {
   /*
    Update scalars
    */
-  C->avgAccProb += ((C->accProb - C->avgAccProb) / C->currentIter);
+  C->avg_acc_prob += ((C->acc_prob - C->avg_acc_prob) / C->current_iter);
 }
 
 void infmcmc_updateRWMH(mcmc_infchain *C, double logLHDOfProposal) {
   double alpha;
   
-  alpha = exp(C->logLHDCurrentState - logLHDOfProposal);
+  alpha = exp(C->log_likelihood_current_state - logLHDOfProposal);
   
   if (alpha > 1.0) {
     alpha = 1.0;
   }
   // fixme: set acc prob here instead
   if (gsl_rng_uniform(C->r) < alpha) {
-    memcpy(C->currentSpectralState, C->proposedSpectralState, sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1));
-    memcpy(C->currentPhysicalState, C->proposedPhysicalState, sizeof(double) * C->nj * C->nk);
-    C->accProb = alpha;
-    C->logLHDCurrentState = logLHDOfProposal;
+    memcpy(C->current_spectral_state, C->proposed_spectral_state, sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1));
+    memcpy(C->current_physical_state, C->proposed_physical_state, sizeof(double) * C->nj * C->nk);
+    C->acc_prob = alpha;
+    C->log_likelihood_current_state = logLHDOfProposal;
   }
   
   infmcmc_updateAvgs(C);
@@ -433,7 +433,7 @@ void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double 
   double alpha;
   
   // log likelihoods will be the same for both chains
-	alpha = exp(C1->logLHDCurrentState - logLHDOfProposal);
+	alpha = exp(C1->log_likelihood_current_state - logLHDOfProposal);
 	
   if (alpha > 1.0) {
     alpha = 1.0;
@@ -441,18 +441,18 @@ void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double 
   
   C1->accepted = 0;
   C2->accepted = 0;
-  C1->accProb = alpha;
-  C2->accProb = alpha;
+  C1->acc_prob = alpha;
+  C2->acc_prob = alpha;
   
   if (gsl_rng_uniform(C1->r) < alpha) {
     C1->accepted = 1;
     C2->accepted = 1;
-    memcpy(C1->currentSpectralState, C1->proposedSpectralState, sizeof(fftw_complex) * C1->nj * ((C1->nk >> 1) + 1));
-    memcpy(C1->currentPhysicalState, C1->proposedPhysicalState, sizeof(double) * C1->nj * C1->nk);
-    C1->logLHDCurrentState = logLHDOfProposal;
-    memcpy(C2->currentSpectralState, C2->proposedSpectralState, sizeof(fftw_complex) * C2->nj * ((C2->nk >> 1) + 1));
-    memcpy(C2->currentPhysicalState, C2->proposedPhysicalState, sizeof(double) * C2->nj * C2->nk);
-    C2->logLHDCurrentState = logLHDOfProposal;
+    memcpy(C1->current_spectral_state, C1->proposed_spectral_state, sizeof(fftw_complex) * C1->nj * ((C1->nk >> 1) + 1));
+    memcpy(C1->current_physical_state, C1->proposed_physical_state, sizeof(double) * C1->nj * C1->nk);
+    C1->log_likelihood_current_state = logLHDOfProposal;
+    memcpy(C2->current_spectral_state, C2->proposed_spectral_state, sizeof(fftw_complex) * C2->nj * ((C2->nk >> 1) + 1));
+    memcpy(C2->current_physical_state, C2->proposed_physical_state, sizeof(double) * C2->nj * C2->nk);
+    C2->log_likelihood_current_state = logLHDOfProposal;
   }
   
   infmcmc_updateAvgs(C1);
@@ -460,16 +460,16 @@ void infmcmc_updateVectorFieldRWMH(mcmc_infchain *C1, mcmc_infchain *C2, double 
 }
 
 void infmcmc_setRWMHStepSize(mcmc_infchain *C, double beta) {
-  C->rwmhStepSize = beta;
+  C->rwmh_stepsize = beta;
 }
 
 void infmcmc_setPriorAlpha(mcmc_infchain *C, double alpha) {
-  C->alphaPrior = alpha;
+  C->alpha_prior = alpha;
 }
 
 void infmcmc_setPriorVar(mcmc_infchain *C, double var) {
-  C->priorVar = var;
-  C->priorStd = sqrt(var);
+  C->prior_var = var;
+  C->prior_std = sqrt(var);
 }
 
 double L2Field(fftw_complex *uk, int nj, int nk) {
@@ -487,15 +487,15 @@ double L2Field(fftw_complex *uk, int nj, int nk) {
 }
 
 double infmcmc_L2Current(mcmc_infchain *C) {
-  return L2Field(C->currentSpectralState, C->nj, C->nk);
+  return L2Field(C->current_spectral_state, C->nj, C->nk);
 }
 
 double infmcmc_L2Proposed(mcmc_infchain *C) {
-  return L2Field(C->proposedSpectralState, C->nj, C->nk);
+  return L2Field(C->proposed_spectral_state, C->nj, C->nk);
 }
 
 double infmcmc_L2Prior(mcmc_infchain *C) {
-  return L2Field(C->priorDraw, C->nj, C->nk);
+  return L2Field(C->prior_draw, C->nj, C->nk);
 }
 
 
@@ -592,31 +592,31 @@ void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCo
 }
 
 void setRWMHStepSize(mcmc_infchain *C, double stepSize) {
-  C->rwmhStepSize = stepSize;
+  C->rwmh_stepsize = stepSize;
 }
 
 void resetAvgs(mcmc_infchain *C) {
   /*
-    Sets avgPhysicalState to currentPhysicalState and
-         avgSpectralState to currentSpectralState
+    Sets avg_physical_state to current_physical_state and
+         avg_spectral_state to current_spectral_state
   */
   const size_t size_doublenj = sizeof(double) * C->nj;
-  memcpy(C->avgPhysicalState, C->currentPhysicalState, size_doublenj * C->nk);
-  memcpy(C->avgSpectralState, C->currentSpectralState, size_doublenj * ((C->nk >> 1) + 1));
+  memcpy(C->avg_physical_state, C->current_physical_state, size_doublenj * C->nk);
+  memcpy(C->avg_spectral_state, C->current_spectral_state, size_doublenj * ((C->nk >> 1) + 1));
 }
 
 void resetVar(mcmc_infchain *C) {
-  // Sets varPhysicalState to 0
-  memset(C->varPhysicalState, 0, sizeof(double) * C->nj * C->nk);
+  // Sets var_physical_state to 0
+  memset(C->var_physical_state, 0, sizeof(double) * C->nj * C->nk);
 }
 
 void proposeIndependence(mcmc_infchain *C) {
   const int maxk = (C->nk >> 1) + 1;
   
-  memcpy(C->proposedSpectralState, C->priorDraw, sizeof(fftw_complex) * C->nj * maxk);
+  memcpy(C->proposed_spectral_state, C->prior_draw, sizeof(fftw_complex) * C->nj * maxk);
 }
 
-double lsqFunctional(const double * const data, const double * const obsVec, const int obsVecSize, const double obsStdDev) {
+double lsqFunctional(const double * const data, const double * const obsVec, const int obsVecSize, const double obs_std_dev) {
   int i;
   double temp1, sum1 = 0.0;
   
@@ -625,12 +625,12 @@ double lsqFunctional(const double * const data, const double * const obsVec, con
     sum1 += temp1 * temp1;
   }
   
-  return sum1 / (2.0 * obsStdDev * obsStdDev);
+  return sum1 / (2.0 * obs_std_dev * obs_std_dev);
 }
 
 void acceptReject(mcmc_infchain *C) {
-  const double phi1 = lsqFunctional(C->data, C->currentStateObservations, C->sizeObsVector, C->obsStdDev);
-  const double phi2 = lsqFunctional(C->data, C->proposedStateObservations, C->sizeObsVector, C->obsStdDev);
+  const double phi1 = lsqFunctional(C->data, C->current_state_observations, C->sizeObsVector, C->obs_std_dev);
+  const double phi2 = lsqFunctional(C->data, C->proposed_state_observations, C->sizeObsVector, C->obs_std_dev);
   double tempAccProb = exp(phi1 - phi2);
   
   if(tempAccProb > 1.0) {
@@ -638,15 +638,15 @@ void acceptReject(mcmc_infchain *C) {
   }
   
   if(gsl_rng_uniform(C->r) < tempAccProb) {
-    memcpy(C->currentSpectralState, C->proposedSpectralState, sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1));
-    memcpy(C->currentPhysicalState, C->proposedPhysicalState, sizeof(double) * C->nj * C->nk);
-    memcpy(C->currentStateObservations, C->proposedStateObservations, sizeof(double) * C->sizeObsVector);
+    memcpy(C->current_spectral_state, C->proposed_spectral_state, sizeof(fftw_complex) * C->nj * ((C->nk >> 1) + 1));
+    memcpy(C->current_physical_state, C->proposed_physical_state, sizeof(double) * C->nj * C->nk);
+    memcpy(C->current_state_observations, C->proposed_state_observations, sizeof(double) * C->sizeObsVector);
     
-    C->accProb = tempAccProb;
-    C->currentLSQFunctional = phi2;
+    C->acc_prob = tempAccProb;
+    C->current_LSQFunctional = phi2;
   }
   else {
-    C->currentLSQFunctional = phi1;
+    C->current_LSQFunctional = phi1;
   }
 }
 

@@ -12,30 +12,30 @@
 
 struct _mcmc_infchain {
   int nj, nk; // number of Fourier coefficients in x/y direction respectively
-  int numKeptSamples;
+  int num_kept_samples;
   int sizeObsVector;
-  int currentIter;
+  int current_iter;
   int accepted;
-  double _shortTimeAccProbAvg;
+  double _short_time_acc_prob_avg;
   double _bLow, _bHigh;
 
-  double *currentPhysicalState, *avgPhysicalState, *varPhysicalState, *_M2;
-  double *proposedPhysicalState;
-  double logLHDCurrentState;
+  double *current_physical_state, *avg_physical_state, *var_physical_state, *_M2;
+  double *proposed_physical_state;
+  double log_likelihood_current_state;
 
-  double accProb, avgAccProb;
-  double rwmhStepSize, alphaPrior, priorVar, priorStd;
+  double acc_prob, avg_acc_prob;
+  double rwmh_stepsize, alpha_prior, prior_var, prior_std;
 
   // -- potentially not used --
-  double *currentStateObservations, *proposedStateObservations;
+  double *current_state_observations, *proposed_state_observations;
   double *data;
-  double currentLSQFunctional;
-  double currentStateL2Norm2;
-  double obsStdDev;  
+  double current_LSQFunctional;
+  double current_state_L2norm2;
+  double obs_std_dev;
   // --------------------------
 
-  fftw_complex *currentSpectralState, *avgSpectralState;
-  fftw_complex *priorDraw, *proposedSpectralState;
+  fftw_complex *current_spectral_state, *avg_spectral_state;
+  fftw_complex *prior_draw, *proposed_spectral_state;
 
   fftw_plan _c2r;
   fftw_plan _r2c;
