@@ -1,3 +1,10 @@
+/**
+ * \file infmcmc.h
+ * \brief Public API to infinite dimensional Markov chain
+ *
+ * Functions are provided to interface with the Markov chain data
+ * structure.
+ */
 #ifndef INFMCMC_H
 #define INFMCMC_H
 
