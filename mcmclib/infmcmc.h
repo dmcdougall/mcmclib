@@ -5,11 +5,6 @@
 #include <fftw3.h>
 #include <gsl/gsl_rng.h>
 
-//void sampleRMWH(CHAIN *C);
-//void sampleIndependenceSampler(CHAIN *C);
-//void updateMean(CHAIN *C);
-//void updateVar(CHAIN *C);
-
 struct _mcmc_infchain {
   /**
    * Number of degrees of freedom (Fourier coefficients) in the x direction.
