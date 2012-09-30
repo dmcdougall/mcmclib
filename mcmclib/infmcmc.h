@@ -11,36 +11,153 @@
 //void updateVar(CHAIN *C);
 
 struct _mcmc_infchain {
-  int nj, nk; // number of Fourier coefficients in x/y direction respectively
-  int num_kept_samples;
-  int sizeObsVector;
+  /**
+   * Number of degrees of freedom (Fourier coefficients) in the x direction.
+   */
+  int nj;
+  /**
+   * Number of degrees of freedom (Fourier coefficients) in the y direction.
+   */
+  int nk;
+  /**
+   * Stores the current Markov chain iteration number.
+   */
   int current_iter;
+  /**
+   * Number of samples you wish to keep in the Markov chain.
+   */
+  int num_kept_samples;
+  /**
+   * This is 1 if the previous iteration was accepted and 0 if it was rejected.
+   */
   int accepted;
-  double _short_time_acc_prob_avg;
-  double _bLow, _bHigh;
-
-  double *current_physical_state, *avg_physical_state, *var_physical_state, *_M2;
+  /**
+   * Current Markov chain state in the physical domain.
+   */
+  double *current_physical_state;
+  /**
+   * Average Markov chain state in the physical domain.
+   */
+  double *avg_physical_state;
+  /**
+   * Variance of the Markov chain state in the physical domain.
+   */
+  double *var_physical_state;
+  /**
+   * Stores the most recently proposed Markov chain state in the physical
+   * domain.
+   */
   double *proposed_physical_state;
+  /**
+   * Current Markov chain state in the coefficient domain.
+   */
+  fftw_complex *current_spectral_state;
+  /**
+   * Average Markov chain state in the coefficient domain.
+   */
+  fftw_complex *avg_spectral_state;
+  /**
+   * Stores the most recently proposed Markov chain state in the coefficient
+   * domain.
+   */
+  fftw_complex *proposed_spectral_state;
+  /**
+   * Stores a draw from the prior distribution in coefficient domain.
+   */
+  fftw_complex *prior_draw;
+  /**
+   * The current acceptance probability.
+   */
+  double acc_prob;
+  /**
+   * The empirical mean acceptance probability. This is the acceptance rate.
+   */
+  double avg_acc_prob;
+  /**
+   * The random-walk proposal step size.
+   */
+  double rwmh_stepsize;
+  /**
+   * The fractional power of the inverse of the Laplacian operator. This
+   * operator is the covariance operator of the prior distribution.
+   */
+  double alpha_prior;
+  /**
+   * Multiplicative coefficient of the prior covariance operator. Larger
+   * values mean larger variance. Smaller values mean smaller variance.
+   */
+  double prior_var;
+  /**
+   * Square root of the multiplicative coefficient of the prior variance
+   * operator.
+   */
+  double prior_std;
+  /**
+   * Stores the log likelihood of the current state. You should set this after
+   * proposing a state.
+   */
   double log_likelihood_current_state;
-
-  double acc_prob, avg_acc_prob;
-  double rwmh_stepsize, alpha_prior, prior_var, prior_std;
-
-  // -- potentially not used --
-  double *current_state_observations, *proposed_state_observations;
+  /**
+   * The size of the output from the energy functional. The energy functional
+   * may be referred to as a different name depending on your scientific field.
+   */
+  int sizeObsVector;
+  /**
+   * Stores the output of the energy functional using the current state as
+   * input.
+   */
+  double *current_state_observations;
+  /**
+   * Stores the output of the energy functional using the proposed state as
+   * input.
+   */
+  double *proposed_state_observations;
+  /**
+   * CHECK THIS ISN'T NEEDED
+   */
   double *data;
+  /**
+   * Stores the current value of the least-squares functional. This is
+   * potentially not needed.
+   */
   double current_LSQFunctional;
-  double current_state_L2norm2;
+  /**
+   * The standard deviation of errors in the observations. This is potentially
+   * not needed.
+   */
   double obs_std_dev;
-  // --------------------------
-
-  fftw_complex *current_spectral_state, *avg_spectral_state;
-  fftw_complex *prior_draw, *proposed_spectral_state;
-
+  /**
+   * Stores the square of the L2 norm of the current Markov chain state.
+   */
+  double current_state_L2norm2;
+  /**
+   * Private
+   */
   fftw_plan _c2r;
+  /**
+   * Private
+   */
   fftw_plan _r2c;
-
+  /**
+   * Private
+   */
   gsl_rng *r;
+  /**
+   * Private
+   */
+  double _short_time_acc_prob_avg;
+  /**
+   * Private
+   */
+  double _bLow;
+  /**
+   * Private
+   */
+  double _bHigh;
+  /**
+   * Private
+   */
+  double *_M2;
 };
 
 typedef struct _mcmc_infchain mcmc_infchain;
