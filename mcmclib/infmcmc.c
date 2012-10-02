@@ -95,6 +95,7 @@ void mcmc_init_infchain(mcmc_infchain *chain, unsigned int type, const int nj, c
   chain->_r2c = fftw_plan_dft_r2c_2d(nj, nk, chain->current_physical_state, chain->current_spectral_state, FFTW_MEASURE);
 
   chain->_prior = (prior_data *)malloc(sizeof(prior_data));
+  _initialise_prior_data(chain->_prior, chain->ndofs);
 
   chain->_type = type;
 

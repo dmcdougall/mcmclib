@@ -424,5 +424,10 @@ void mcmc_propose_divfree_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2);
  * The value of the log-likelihood at the proposed vector field
  */
 void mcmc_update_vectorfield_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, double logLHDOfProposal);
+
+// Prior stuff
+int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
+    double *evecs);
+
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 #endif

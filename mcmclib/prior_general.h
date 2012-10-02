@@ -9,4 +9,6 @@ struct _prior_data {
 
 typedef struct _prior_data prior_data;
 
+void _initialise_prior_data(prior_data *p, int n);
+
 #endif
