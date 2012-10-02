@@ -528,7 +528,7 @@ void _to_physical_general(mcmc_infchain *c, void *source, void *dest) {
   for (i = 0; i < c->ndofs; i++) {
     physical[i] = 0.0;
     for (j = 0; j < c->ndofs; j++) {
-      physical[i] += c->_prior->evals[j] + c->_prior->evecs[j*c->ndofs+i];
+      physical[i] += coefficient[j] * c->_prior->evecs[j*c->ndofs+i];
     }
   }
 }
@@ -541,7 +541,7 @@ void _to_coefficient_general(mcmc_infchain *c, void *source, void *dest) {
   for (i = 0; i < c->ndofs; i++) {
     coefficient[i] = 0.0;
     for (j = 0; j < c->ndofs; j++) {
-      coefficient[i] += coefficient[j] * c->_prior->evecs[i*c->ndofs+j];
+      coefficient[i] += physical[j] * c->_prior->evecs[i*c->ndofs+j];
     }
   }
 }
