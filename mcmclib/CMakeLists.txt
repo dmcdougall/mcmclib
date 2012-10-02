@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(mcmclib C)
-set(LIBSRC infmcmc.c infmcmc.h finmcmc.c finmcmc.h)
+set(LIBSRC infmcmc.c infmcmc.h finmcmc.c finmcmc.h prior_general.c prior_general.h)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${mcmclib_SOURCE_DIR}/CMakeModules")
 set(CMAKE_BUILD_TYPE Release)
 
