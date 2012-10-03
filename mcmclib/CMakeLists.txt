@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(mcmclib C)
-set(LIBSRC infmcmc.c infmcmc.h finmcmc.c finmcmc.h)
+set(LIBSRC infmcmc.c infmcmc.h finmcmc.c finmcmc.h prior_general.c prior_general.h)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${mcmclib_SOURCE_DIR}/CMakeModules")
 set(CMAKE_BUILD_TYPE Release)
 
@@ -21,11 +21,11 @@ target_link_libraries(mcmc ${LIBS})
 # link_libraries(${LIBS})
 
 install(TARGETS mcmc LIBRARY DESTINATION lib)
-install(FILES infmcmc.h finmcmc.h DESTINATION include)
+install(FILES infmcmc.h finmcmc.h prior_general.h DESTINATION include)
 
 message(STATUS "install dir: ${CMAKE_INSTALL_PREFIX}")
 
 enable_testing()
-add_executable(t-setters t-setters.c infmcmc.c)
+add_executable(t-setters t-setters.c infmcmc.c prior_general.c)
 target_link_libraries(t-setters ${LIBS})
 add_test(t-setters ${EXECUTABLE_OUTPUT_PATH} t-setters)

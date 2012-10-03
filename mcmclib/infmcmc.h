@@ -12,6 +12,11 @@
 #include <fftw3.h>
 #include <gsl/gsl_rng.h>
 
+#include "prior_general.h"
+
+#define MCMC_INFCHAIN_GENERAL (0U)
+#define MCMC_INFCHAIN_PERIODIC (1U << 0)
+
 /**
  * \struct _mcmc_infchain
  * \brief The Markov chain data structure
@@ -25,6 +30,10 @@ struct _mcmc_infchain {
    * Number of degrees of freedom (Fourier coefficients) in the y direction.
    */
   int nk;
+  /**
+   * Number of (general) degrees of freedom
+   */
+  int ndofs;
   /**
    * Stores the current Markov chain iteration number.
    */
@@ -143,6 +152,13 @@ struct _mcmc_infchain {
   double _bLow;
   double _bHigh;
   double *_M2;
+  unsigned int _type;
+
+  // Prior stuff: private
+  double *_prior_draw;
+  prior_data *_prior;
+  void (* _to_physical)(struct _mcmc_infchain *c, void *source, void *dest);
+  void (* _to_coefficient)(struct _mcmc_infchain *c, void *source, void *dest);
 };
 
 typedef struct _mcmc_infchain mcmc_infchain;
@@ -166,7 +182,7 @@ typedef struct _mcmc_infchain mcmc_infchain;
  * \param nk
  * Number of Fourier corfficients in the y direction.
  */
-void mcmc_init_infchain(mcmc_infchain *chain, const int nj, const int nk);
+void mcmc_init_infchain(mcmc_infchain *chain, unsigned int type, const int nj, const int nk);
 
 /**
  * \brief Free a previously initialised Markov chain
@@ -411,5 +427,11 @@ void mcmc_propose_divfree_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2);
  * The value of the log-likelihood at the proposed vector field
  */
 void mcmc_update_vectorfield_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, double logLHDOfProposal);
+
+// Prior stuff
+int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
+    double *evecs, double regularity);
+void mcmc_infchain_prior_draw(mcmc_infchain *chain);
+
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 #endif

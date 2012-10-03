@@ -9,11 +9,16 @@
 #include <Accelerate/Accelerate.h>
 
 #include "infmcmc.h"
+#include "prior_general.h"
 
 #define nj1 32
 #define nk1 32
 
-void mcmc_init_infchain(mcmc_infchain *chain, const int nj, const int nk) {
+// Transform protoypes, because they shouldn't be in the header
+void _to_physical_general(mcmc_infchain *c, void *source, void *dest);
+void _to_coefficient_general(mcmc_infchain *c, void *source, void *dest);
+
+void mcmc_init_infchain(mcmc_infchain *chain, unsigned int type, const int nj, const int nk) {
   const int maxk      = (nk >> 1) + 1;
   const int sspectral = sizeof(fftw_complex) * nj * maxk;
   const int sphysical = sizeof(double      ) * nj * nk;
@@ -24,6 +29,10 @@ void mcmc_init_infchain(mcmc_infchain *chain, const int nj, const int nk) {
   // Set up variables
   chain->nj = nj;
   chain->nk = nk;
+
+  // This needs to be changed when the periodic case gets encapsulated
+  chain->ndofs = nj * nk;
+
   //chain->sizeObsVector = sizeObsVector;
   chain->current_iter = 0;
   chain->accepted = 0;
@@ -75,15 +84,31 @@ void mcmc_init_infchain(mcmc_infchain *chain, const int nj, const int nk) {
     fread(&seed, sizeof(unsigned long int), 1, fp);
     gsl_rng_set(chain->r, seed);
     fclose(fp);
-    printf("Using random seed\n");
+    /* printf("Using random seed\n"); */
   }
   else {
     gsl_rng_set(chain->r, 0);
-    printf("Using zero seed\n");
+    /* printf("Using zero seed\n"); */
   }
 
   chain->_c2r = fftw_plan_dft_c2r_2d(nj, nk, chain->proposed_spectral_state, chain->proposed_physical_state, FFTW_MEASURE);
   chain->_r2c = fftw_plan_dft_r2c_2d(nj, nk, chain->current_physical_state, chain->current_spectral_state, FFTW_MEASURE);
+
+  chain->_prior = (prior_data *)malloc(sizeof(prior_data));
+  _initialise_prior_data(chain->_prior, type, chain->ndofs);
+
+  chain->_prior_draw = (double *)malloc(sizeof(double) * chain->ndofs);
+
+  chain->_type = type;
+
+  // Set transforms based on type
+  if (type == MCMC_INFCHAIN_GENERAL) {
+    chain->_to_physical = _to_physical_general;
+    chain->_to_coefficient = _to_coefficient_general;
+  }
+  else if (type == MCMC_INFCHAIN_PERIODIC) {
+    // Set fftw transforms here
+  }
 }
 
 void mcmc_free_infchain(mcmc_infchain *chain) {
@@ -106,7 +131,7 @@ void mcmc_free_infchain(mcmc_infchain *chain) {
 
 void mcmc_reset_infchain(mcmc_infchain *chain) {
   mcmc_free_infchain(chain);
-  mcmc_init_infchain(chain, chain->nj, chain->nk);
+  mcmc_init_infchain(chain, chain->_type, chain->nj, chain->nk);
 }
 
 void mcmc_write_infchain(const mcmc_infchain *chain, FILE *fp) {
@@ -496,6 +521,37 @@ double mcmc_proposed_L2(mcmc_infchain *chain) {
 
 double mcmc_prior_L2(mcmc_infchain *chain) {
   return L2Field(chain->prior_draw, chain->nj, chain->nk);
+}
+
+void _to_physical_general(mcmc_infchain *c, void *source, void *dest) {
+  int i, j;
+  double *coefficient = (double *)source;
+  double *physical = (double *)dest;
+
+  for (i = 0; i < c->ndofs; i++) {
+    physical[i] = 0.0;
+    for (j = 0; j < c->ndofs; j++) {
+      physical[i] += coefficient[j] * c->_prior->evecs[j*c->ndofs+i];
+    }
+  }
+}
+
+void _to_coefficient_general(mcmc_infchain *c, void *source, void *dest) {
+  int i, j;
+  double *coefficient = (double *)dest;
+  double *physical = (double *)source;
+
+  for (i = 0; i < c->ndofs; i++) {
+    coefficient[i] = 0.0;
+    for (j = 0; j < c->ndofs; j++) {
+      coefficient[i] += physical[j] * c->_prior->evecs[i*c->ndofs+j];
+    }
+  }
+}
+
+void mcmc_infchain_prior_draw(mcmc_infchain *chain) {
+  chain->_prior->_generate_draw(chain->_prior, chain->r, chain->_prior_draw,
+      chain->ndofs);
 }
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs) {
