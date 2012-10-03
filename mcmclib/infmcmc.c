@@ -84,11 +84,11 @@ void mcmc_init_infchain(mcmc_infchain *chain, unsigned int type, const int nj, c
     fread(&seed, sizeof(unsigned long int), 1, fp);
     gsl_rng_set(chain->r, seed);
     fclose(fp);
-    printf("Using random seed\n");
+    /* printf("Using random seed\n"); */
   }
   else {
     gsl_rng_set(chain->r, 0);
-    printf("Using zero seed\n");
+    /* printf("Using zero seed\n"); */
   }
 
   chain->_c2r = fftw_plan_dft_c2r_2d(nj, nk, chain->proposed_spectral_state, chain->proposed_physical_state, FFTW_MEASURE);
