@@ -95,7 +95,9 @@ void mcmc_init_infchain(mcmc_infchain *chain, unsigned int type, const int nj, c
   chain->_r2c = fftw_plan_dft_r2c_2d(nj, nk, chain->current_physical_state, chain->current_spectral_state, FFTW_MEASURE);
 
   chain->_prior = (prior_data *)malloc(sizeof(prior_data));
-  _initialise_prior_data(chain->_prior, chain->ndofs);
+  _initialise_prior_data(chain->_prior, type, chain->ndofs);
+
+  chain->_prior_draw = (double *)malloc(sizeof(double) * chain->ndofs);
 
   chain->_type = type;
 
@@ -545,6 +547,11 @@ void _to_coefficient_general(mcmc_infchain *c, void *source, void *dest) {
       coefficient[i] += physical[j] * c->_prior->evecs[i*c->ndofs+j];
     }
   }
+}
+
+void mcmc_infchain_prior_draw(mcmc_infchain *chain) {
+  chain->_prior->_generate_draw(chain->_prior, chain->r, chain->_prior_draw,
+      chain->ndofs);
 }
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs) {

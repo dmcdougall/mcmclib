@@ -153,6 +153,9 @@ struct _mcmc_infchain {
   double _bHigh;
   double *_M2;
   unsigned int _type;
+
+  // Prior stuff: private
+  double *_prior_draw;
   prior_data *_prior;
   void (* _to_physical)(struct _mcmc_infchain *c, void *source, void *dest);
   void (* _to_coefficient)(struct _mcmc_infchain *c, void *source, void *dest);
@@ -428,6 +431,7 @@ void mcmc_update_vectorfield_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, 
 // Prior stuff
 int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
     double *evecs, double regularity);
+void mcmc_infchain_prior_draw(mcmc_infchain *chain);
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 #endif
