@@ -1,3 +1,5 @@
 Use L2 inner product for transforms, not Euclidean, duh.
 
 Bring the general chain stuff inline with the way the periodic case does things.
+
+Add makefile/use cmake for examples?
