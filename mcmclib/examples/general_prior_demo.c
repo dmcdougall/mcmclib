@@ -1,3 +1,10 @@
+/*
+ * An example for making general random prior draws.
+ *
+ * Output is printed to stdout. You can view the random draw with:
+ * ./a.out | graph -T png > plot.png
+ */
+#include <stdio.h>
 #include <math.h>
 #include <infmcmc.h>
 #include <prior_general.h>
@@ -25,16 +32,19 @@ int main(int argc, char **argv) {
   // Now set up the Markov chain and prior
   mcmc_infchain *chain = (mcmc_infchain *)malloc(sizeof(mcmc_infchain));
   mcmc_init_infchain(chain, MCMC_INFCHAIN_GENERAL, 10, 10);
+
+  // Supply the eigenvalues and eigenvectors to the chain
   mcmc_infchain_set_prior_data(chain, evals, evecs, 2);
+
+  // Make a draw from the prior
   mcmc_infchain_prior_draw(chain);
 
-  FILE *fp = fopen("rand_prior_draw.txt", "w");
-  fprintf(fp, "%lf %lf\n", 0.0, 0.0);
+  // Write the draw to stdout
+  printf("%lf %lf\n", 0.0, 0.0);
   for (i = 0; i < n; i++) {
-    fprintf(fp, "%lf %lf\n", (i + 1) * dx, chain->_prior_draw[i]);
+    printf("%lf %lf\n", (i + 1) * dx, chain->_prior_draw[i]);
   }
-  fprintf(fp, "%lf %lf\n", 1.0, 0.0);
-  fclose(fp);
+  printf("%lf %lf\n", 1.0, 0.0);
 
   free(evals);
   free(evecs);
