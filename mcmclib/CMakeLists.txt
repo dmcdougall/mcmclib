@@ -21,11 +21,11 @@ target_link_libraries(mcmc ${LIBS})
 # link_libraries(${LIBS})
 
 install(TARGETS mcmc LIBRARY DESTINATION lib)
-install(FILES infmcmc.h finmcmc.h DESTINATION include)
+install(FILES infmcmc.h finmcmc.h prior_general.h DESTINATION include)
 
 message(STATUS "install dir: ${CMAKE_INSTALL_PREFIX}")
 
 enable_testing()
-add_executable(t-setters t-setters.c infmcmc.c)
+add_executable(t-setters t-setters.c infmcmc.c prior_general.c)
 target_link_libraries(t-setters ${LIBS})
 add_test(t-setters ${EXECUTABLE_OUTPUT_PATH} t-setters)
