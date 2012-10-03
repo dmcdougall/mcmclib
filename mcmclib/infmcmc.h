@@ -427,7 +427,7 @@ void mcmc_update_vectorfield_RWMH(mcmc_infchain *chain1, mcmc_infchain *chain2, 
 
 // Prior stuff
 int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
-    double *evecs);
+    double *evecs, double regularity);
 
 void randomPriorDrawOLD(gsl_rng *r, double PRIOR_ALPHA, fftw_complex *randDrawCoeffs);
 #endif

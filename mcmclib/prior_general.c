@@ -10,7 +10,7 @@ void _initialise_prior_data(prior_data *p, int n) {
 }
 
 int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
-    double *evecs) {
+    double *evecs, double regularity) {
   int i;
 
   for (i = 0; i < chain->ndofs; i++) {
@@ -18,6 +18,10 @@ int mcmc_infchain_set_prior_data(mcmc_infchain *chain, double *evals,
       // Precision operator is not positive-definite, so fail
       return -1;
     }
+  }
+
+  if ((chain->_prior->regularity = regularity) < 0) {
+    return -1;
   }
 
   memcpy(chain->_prior->evecs, evecs,
